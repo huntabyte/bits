@@ -1,21 +1,13 @@
 <script lang="ts">
-	import { Toaster } from "svelte-sonner";
-	import { ModeWatcher } from "mode-watcher";
 	import { dev } from "$app/environment";
 	import { page } from "$app/stores";
-	import Metadata from "$lib/components/metadata.svelte";
 	import SiteHeader from "$lib/components/site-header.svelte";
 	import TailwindIndicator from "$lib/components/tailwind-indicator.svelte";
 	import TableOfContents from "$lib/components/toc/table-of-contents.svelte";
 	import SidebarNav from "$lib/components/navigation/sidebar-nav.svelte";
 	import { navigation } from "$lib/config/index.js";
 	import { cn } from "$lib/utils/index.js";
-	import "$lib/styles/app.postcss";
 </script>
-
-<ModeWatcher />
-<Metadata />
-<Toaster position="top-right" />
 
 <SiteHeader />
 <div class="min-h-[calc(100vh-64px)]">
