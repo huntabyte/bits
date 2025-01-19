@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { Collapsible } from "bits-ui";
-	import { slide } from "svelte/transition";
-	import { CaretUpDown } from "$icons/index.js";
+	import CaretUpDown from "phosphor-svelte/lib/CaretUpDown";
 </script>
 
 <Collapsible.Root class="w-[327px] space-y-3">
@@ -15,10 +14,7 @@
 		</Collapsible.Trigger>
 	</div>
 
-	<Collapsible.Content
-		class="space-y-2 font-mono text-[15px] tracking-[0.01em]"
-		transition={slide}
-	>
+	<Collapsible.Content class="space-y-2 font-mono text-[15px] tracking-[0.01em]">
 		<div class="inline-flex h-12 w-full items-center rounded-9px bg-muted px-[18px] py-3">
 			@huntabyte/bits-ui
 		</div>

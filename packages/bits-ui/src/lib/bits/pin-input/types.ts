@@ -1,49 +1,111 @@
-import type { HTMLInputAttributes } from "svelte/elements";
-import type { CreatePinInputProps as MeltPinInputProps } from "@melt-ui/svelte";
+import type { Snippet } from "svelte";
+import type { OnChangeFn, WithChild, Without } from "$lib/internal/types.js";
 import type {
-	DOMElement,
-	Expand,
-	HTMLDivAttributes,
-	OmitIds,
-	OmitValue,
-	OnChangeFn,
-} from "$lib/internal/index.js";
-import type { CustomEventHandler } from "$lib/index.js";
+	BitsPrimitiveDivAttributes,
+	BitsPrimitiveInputAttributes,
+} from "$lib/shared/attributes.js";
 
-export type PinInputPropsWithoutHTML = Expand<
-	OmitIds<
-		OmitValue<MeltPinInputProps> & {
+export type PinInputRootSnippetProps = {
+	cells: PinInputCell[];
+	isFocused: boolean;
+	isHovering: boolean;
+};
+
+export type PinInputRootPropsWithoutHTML = Omit<
+	WithChild<
+		{
 			/**
-			 * The value pin-input, which is an array of strings.
+			 * The value of the input.
 			 *
-			 * You can bind to this to programmatically control the value.
+			 * @bindable
 			 */
-			value?: MeltPinInputProps["defaultValue"] | undefined;
+			value?: string;
 
 			/**
-			 * A callback function called when the value changes.
+			 * A callback function that is called when the value of the input changes.
 			 */
-			onValueChange?: OnChangeFn<MeltPinInputProps["defaultValue"]> | undefined;
-		} & DOMElement
-	>
+			onValueChange?: OnChangeFn<string>;
+
+			/**
+			 * A callback function that is called when the user pastes text into the input.
+			 * It receives the pasted text as an argument, and should return the sanitized text.
+			 *
+			 * Use this function to clean up the pasted text, like removing hyphens or other
+			 * characters that should not make it into the input.
+			 */
+			onPaste?: (text: string) => string;
+
+			/**
+			 * The max length of the input.
+			 */
+			maxlength: number;
+
+			/**
+			 * Customize the alignment of the text within in the input.
+			 *
+			 * @default "left"
+			 */
+			textalign?: "left" | "center" | "right";
+
+			/**
+			 * A callback function that is called when the input is completely filled.
+			 *
+			 */
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			onComplete?: (...args: any[]) => void;
+
+			/**
+			 * How to handle the input when a password manager is detected.
+			 */
+			pushPasswordManagerStrategy?: "increase-width" | "none";
+
+			/**
+			 * Whether the input is disabled
+			 */
+			disabled?: boolean;
+
+			/**
+			 * Optionally provide an ID to apply to the hidden input element.
+			 */
+			inputId?: string;
+
+			/**
+			 * The children snippet used to render the individual cells.
+			 */
+			children: Snippet<[PinInputRootSnippetProps]>;
+		},
+		PinInputRootSnippetProps
+	>,
+	"child"
 >;
 
-export type PinInputInputPropsWithoutHTML = DOMElement<HTMLInputElement>;
+export type PinInputRootProps = PinInputRootPropsWithoutHTML &
+	Without<BitsPrimitiveInputAttributes, PinInputRootPropsWithoutHTML>;
 
-export type PinInputHiddenInputPropsWithoutHTML = DOMElement<HTMLInputElement>;
-//
+export type PinInputCellPropsWithoutHTML = WithChild<{
+	/**
+	 * This specific cell, which is provided by the `cells` snippet prop from
+	 * the `PinInput.Root` component.
+	 */
+	cell: PinInputCell;
+}>;
 
-export type PinInputProps = PinInputPropsWithoutHTML & HTMLDivAttributes;
+export type PinInputCellProps = PinInputCellPropsWithoutHTML &
+	Without<BitsPrimitiveDivAttributes, PinInputCellPropsWithoutHTML>;
 
-export type PinInputInputProps = PinInputInputPropsWithoutHTML & HTMLInputAttributes;
+export type PinInputCell = {
+	/**
+	 * The character displayed in the cell.
+	 */
+	char: string | null | undefined;
 
-export type PinInputHiddenInputProps = PinInputHiddenInputPropsWithoutHTML & HTMLInputAttributes;
+	/**
+	 * Whether the cell is active.
+	 */
+	isActive: boolean;
 
-export type PinInputInputEvents = {
-	keydown: CustomEventHandler<KeyboardEvent, HTMLInputElement>;
-	input: CustomEventHandler<InputEvent, HTMLInputElement>;
-	paste: CustomEventHandler<ClipboardEvent, HTMLInputElement>;
-	change: CustomEventHandler<Event, HTMLInputElement>;
-	focus: CustomEventHandler<FocusEvent, HTMLInputElement>;
-	blur: CustomEventHandler<FocusEvent, HTMLInputElement>;
+	/**
+	 * Whether the cell has a fake caret.
+	 */
+	hasFakeCaret: boolean;
 };

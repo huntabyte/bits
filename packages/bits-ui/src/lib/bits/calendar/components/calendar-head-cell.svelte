@@ -1,19 +1,32 @@
 <script lang="ts">
-	import { getCtx } from "../ctx.js";
-	import type { HeadCellProps } from "../index.js";
+	import { box, mergeProps } from "svelte-toolbelt";
+	import { useCalendarHeadCell } from "../calendar.svelte.js";
+	import type { CalendarHeadCellProps } from "../types.js";
+	import { useId } from "$lib/internal/use-id.js";
 
-	type $$Props = HeadCellProps;
-	export let asChild: $$Props["asChild"] = false;
-	export let el: $$Props["el"] = undefined;
-	const { getCalendarAttrs } = getCtx();
+	let {
+		children,
+		child,
+		ref = $bindable(null),
+		id = useId(),
+		...restProps
+	}: CalendarHeadCellProps = $props();
 
-	const attrs = getCalendarAttrs("head-cell");
+	const headCellState = useCalendarHeadCell({
+		id: box.with(() => id),
+		ref: box.with(
+			() => ref,
+			(v) => (ref = v)
+		),
+	});
+
+	const mergedProps = $derived(mergeProps(restProps, headCellState.props));
 </script>
 
-{#if asChild}
-	<slot {attrs} />
+{#if child}
+	{@render child({ props: mergedProps })}
 {:else}
-	<th bind:this={el} {...$$restProps} {...attrs}>
-		<slot {attrs} />
+	<th {...mergedProps}>
+		{@render children?.()}
 	</th>
 {/if}

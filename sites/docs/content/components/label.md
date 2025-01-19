@@ -4,15 +4,17 @@ description: Identifies or describes associated UI elements.
 ---
 
 <script>
-	import { APISection, ComponentPreview, LabelDemo } from '$lib/components/index.js'
+	import { APISection, ComponentPreviewV2, LabelDemo } from '$lib/components/index.js'
 	export let schemas;
 </script>
 
-<ComponentPreview name="label-demo" comp="Label">
+<ComponentPreviewV2 name="label-demo" comp="Label">
 
-<LabelDemo slot="preview" />
+{#snippet preview()}
+<LabelDemo />
+{/snippet}
 
-</ComponentPreview>
+</ComponentPreviewV2>
 
 ## Structure
 

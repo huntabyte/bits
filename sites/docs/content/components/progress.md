@@ -4,15 +4,17 @@ description: Visualizes the progress or completion status of a task or process.
 ---
 
 <script>
-	import { APISection, ComponentPreview, ProgressDemo } from '$lib/components/index.js'
+	import { APISection, ComponentPreviewV2, ProgressDemo } from '$lib/components/index.js'
 	export let schemas;
 </script>
 
-<ComponentPreview name="progress-demo" comp="Progress">
+<ComponentPreviewV2 name="progress-demo" comp="Progress">
 
-<ProgressDemo slot="preview" />
+{#snippet preview()}
+<ProgressDemo />
+{/snippet}
 
-</ComponentPreview>
+</ComponentPreviewV2>
 
 ## Structure
 

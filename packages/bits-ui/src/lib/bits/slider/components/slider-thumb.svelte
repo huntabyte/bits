@@ -1,27 +1,36 @@
 <script lang="ts">
-	import { melt } from "@melt-ui/svelte";
-	import { getCtx } from "../ctx.js";
-	import type { ThumbEvents, ThumbProps } from "../index.js";
-	import { createDispatcher } from "$lib/internal/events.js";
+	import { box, mergeProps } from "svelte-toolbelt";
+	import type { SliderThumbProps } from "../types.js";
+	import { useSliderThumb } from "../slider.svelte.js";
+	import { useId } from "$lib/internal/use-id.js";
 
-	type $$Props = ThumbProps;
-	type $$Events = ThumbEvents;
+	let {
+		children,
+		child,
+		ref = $bindable(null),
+		id = useId(),
+		index,
+		disabled = false,
+		...restProps
+	}: SliderThumbProps = $props();
 
-	export let asChild: $$Props["asChild"] = false;
-	export let el: $$Props["el"] = undefined;
-	export let thumb: $$Props["thumb"];
+	const thumbState = useSliderThumb({
+		id: box.with(() => id),
+		ref: box.with(
+			() => ref,
+			(v) => (ref = v)
+		),
+		index: box.with(() => index),
+		disabled: box.with(() => disabled),
+	});
 
-	const { getAttrs } = getCtx();
-
-	const dispatch = createDispatcher();
-	const attrs = getAttrs("thumb");
-
-	$: builder = thumb;
-	$: Object.assign(builder, attrs);
+	const mergedProps = $derived(mergeProps(restProps, thumbState.props));
 </script>
 
-{#if asChild}
-	<slot {builder} />
+{#if child}
+	{@render child({ props: mergedProps })}
 {:else}
-	<span bind:this={el} use:melt={builder} {...$$restProps} on:m-keydown={dispatch}></span>
+	<span {...mergedProps}>
+		{@render children?.()}
+	</span>
 {/if}

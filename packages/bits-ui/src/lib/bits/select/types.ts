@@ -1,139 +1,270 @@
-import type { HTMLAttributes, HTMLButtonAttributes, HTMLInputAttributes } from "svelte/elements";
+import type { Expand } from "svelte-toolbelt";
+import type { PortalProps } from "../utilities/portal/types.js";
+import type { PopperLayerProps, PopperLayerStaticProps } from "../utilities/popper-layer/types.js";
+import type { ArrowProps, ArrowPropsWithoutHTML } from "../utilities/arrow/types.js";
 import type {
-	SelectOptionProps as MeltSelectOptionProps,
-	CreateSelectProps as MeltSelectProps,
-} from "@melt-ui/svelte";
+	BitsPrimitiveButtonAttributes,
+	BitsPrimitiveDivAttributes,
+} from "$lib/shared/attributes.js";
 import type {
-	DOMElement,
-	Expand,
-	HTMLDivAttributes,
-	OmitFloating,
 	OnChangeFn,
-	Transition,
-} from "$lib/internal/index.js";
-import type { CustomEventHandler, Selected } from "$lib/index.js";
-import type {
-	ArrowProps as SelectArrowPropsWithoutHTML,
-	ContentProps as SelectContentPropsWithoutHTML,
-} from "$lib/bits/floating/_types.js";
+	WithChild,
+	WithChildNoChildrenSnippetProps,
+	WithChildren,
+	Without,
+} from "$lib/internal/types.js";
+import type { FloatingContentSnippetProps, StaticContentSnippetProps } from "$lib/shared/types.js";
 
-export type { SelectArrowPropsWithoutHTML, SelectContentPropsWithoutHTML };
+export type SelectBaseRootPropsWithoutHTML = WithChildren<{
+	/**
+	 * Whether the combobox is disabled.
+	 *
+	 * @defaultValue `false`
+	 */
+	disabled?: boolean;
 
-type WhenTrue<TrueOrFalse, IfTrue, IfFalse, IfNeither = IfTrue | IfFalse> = [TrueOrFalse] extends [
-	true,
-]
-	? IfTrue
-	: [TrueOrFalse] extends [false]
-		? IfFalse
-		: IfNeither;
+	/**
+	 * Whether the combobox is required (for form submission).
+	 *
+	 * @defaultValue `false`
+	 */
+	required?: boolean;
 
-type SelectValue<T, Multiple extends boolean> = WhenTrue<Multiple, T[] | undefined, T | undefined>;
+	/**
+	 * The name to apply to the hidden input element for form submission.
+	 * If not provided, a hidden input will not be rendered and the combobox will not be part of a form.
+	 */
+	name?: string;
 
-export type SelectPropsWithoutHTML<T = unknown, Multiple extends boolean = false> = Expand<
-	OmitFloating<
-		Omit<MeltSelectProps, "selected" | "defaultSelected" | "onSelectedChange" | "multiple">
-	> & {
-		/**
-		 * The selected value of the select.
-		 * You can bind this to a value to programmatically control the selected value.
-		 *
-		 * @defaultValue undefined
-		 */
-		selected?: SelectValue<Selected<T>, Multiple> | undefined;
+	/**
+	 * Whether the combobox popover is open.
+	 *
+	 * @defaultValue `false`
+	 * @bindable
+	 */
+	open?: boolean;
 
-		/**
-		 * A callback function called when the selected value changes.
-		 */
-		onSelectedChange?: OnChangeFn<SelectValue<Selected<T>, Multiple>> | undefined;
+	/**
+	 * A callback function called when the open state changes.
+	 */
+	onOpenChange?: OnChangeFn<boolean>;
 
-		/**
-		 * The open state of the select menu.
-		 * You can bind this to a boolean value to programmatically control the open state.
-		 *
-		 * @defaultValue false
-		 */
-		open?: boolean | undefined;
+	/**
+	 * Whether or not the combobox menu should loop through the items when navigating with the keyboard.
+	 *
+	 * @defaultValue `false`
+	 */
+	loop?: boolean;
 
-		/**
-		 * A callback function called when the open state changes.
-		 */
-		onOpenChange?: OnChangeFn<boolean> | undefined;
+	/**
+	 * How to scroll the combobox items into view when navigating with the keyboard.
+	 *
+	 * @defaultValue `"nearest"`
+	 */
+	scrollAlignment?: "nearest" | "center";
 
-		/**
-		 * Whether or not multiple values can be selected.
-		 */
-		multiple?: Multiple | undefined;
+	/**
+	 * Optionally provide an array of `value` and `label` pairs that will be used to match
+	 * and trigger selection when the trigger is focused and a key is pressed while the content
+	 * is closed. It's also used to handle form autofill.
+	 *
+	 * By providing this value, you enable selecting a value when the trigger is focused and a key
+	 * is pressed without the content being open, similar to how a native `<select>` works.
+	 * For this to work, you must
+	 *
+	 * The label is what the user will potentially search for via typeahead, and the value is what
+	 * is set as the selected value when a typeahead match is found.
+	 *
+	 * We can't rely on the individual `Item` components to do this because they may not ever be
+	 * mounted to do the DOM if using a conditional block with a Svelte transition or certain
+	 * animation libraries.
+	 *
+	 * IMPORTANT: This functionality is only available for single-select listboxes.
+	 */
+	items?: { value: string; label: string; disabled?: boolean }[];
 
-		/**
-		 * Optionally provide an array of `Selected<T>` objects to
-		 * type the `selected` and `onSelectedChange` props.
-		 */
-		items?: Selected<T>[] | undefined;
-	}
+	/**
+	 * Whether to allow the user to deselect an item by clicking on an already selected item.
+	 * This is only applicable to `type="single"` selects/comboboxes.
+	 */
+	allowDeselect?: boolean;
+}>;
+
+export type SelectSingleRootPropsWithoutHTML = {
+	/**
+	 * The value of the selected combobox item.
+	 *
+	 * @bindable
+	 */
+	value?: string;
+
+	/**
+	 * A callback function called when the value changes.
+	 */
+	onValueChange?: OnChangeFn<string>;
+
+	/**
+	 * The type of combobox.
+	 *
+	 * @required
+	 */
+	type: "single";
+};
+
+export type SelectMultipleRootPropsWithoutHTML = {
+	/**
+	 * The value of the selected combobox item.
+	 *
+	 * @bindable
+	 */
+	value?: string[];
+
+	/**
+	 * A callback function called when the value changes.
+	 */
+	onValueChange?: OnChangeFn<string[]>;
+
+	/**
+	 * The type of combobox.
+	 *
+	 * @required
+	 */
+	type: "multiple";
+};
+
+export type SelectSingleRootProps = SelectBaseRootPropsWithoutHTML &
+	SelectSingleRootPropsWithoutHTML &
+	Without<
+		BitsPrimitiveDivAttributes,
+		SelectSingleRootPropsWithoutHTML | SelectBaseRootPropsWithoutHTML
+	>;
+
+export type SelectMultipleRootProps = SelectBaseRootPropsWithoutHTML &
+	SelectMultipleRootPropsWithoutHTML &
+	Without<
+		BitsPrimitiveDivAttributes,
+		SelectMultipleRootPropsWithoutHTML | SelectBaseRootPropsWithoutHTML
+	>;
+
+export type SelectRootPropsWithoutHTML = SelectBaseRootPropsWithoutHTML &
+	(SelectSingleRootPropsWithoutHTML | SelectMultipleRootPropsWithoutHTML);
+
+export type SelectRootProps = SelectRootPropsWithoutHTML;
+
+export type _SharedSelectContentProps = {
+	/**
+	 * Whether or not to loop through the items when navigating with the keyboard.
+	 *
+	 * @defaultValue `false`
+	 */
+	loop?: boolean;
+};
+
+export type SelectContentPropsWithoutHTML = Expand<
+	WithChildNoChildrenSnippetProps<
+		Omit<PopperLayerProps, "content" | "onOpenAutoFocus" | "trapFocus"> &
+			_SharedSelectContentProps,
+		FloatingContentSnippetProps
+	>
 >;
 
-export type SelectGroupPropsWithoutHTML = DOMElement;
-export type SelectInputPropsWithoutHTML = DOMElement<HTMLInputElement>;
-export type SelectLabelPropsWithoutHTML = DOMElement;
-export type SelectItemPropsWithoutHTML = Expand<MeltSelectOptionProps & DOMElement>;
-export type SelectSeparatorPropsWithoutHTML = DOMElement;
+export type SelectContentProps = SelectContentPropsWithoutHTML &
+	Without<BitsPrimitiveDivAttributes, SelectContentPropsWithoutHTML>;
 
-export type SelectIndicatorPropsWithoutHTML = DOMElement;
+export type SelectContentStaticPropsWithoutHTML = Expand<
+	WithChildNoChildrenSnippetProps<
+		Omit<PopperLayerStaticProps, "content" | "onOpenAutoFocus" | "trapFocus"> &
+			_SharedSelectContentProps,
+		StaticContentSnippetProps
+	>
+>;
 
-export type SelectTriggerPropsWithoutHTML = DOMElement<HTMLButtonElement>;
+export type SelectContentStaticProps = SelectContentStaticPropsWithoutHTML &
+	Without<BitsPrimitiveDivAttributes, SelectContentStaticPropsWithoutHTML>;
 
-export type SelectValuePropsWithoutHTML = Expand<
+export type SelectTriggerPropsWithoutHTML = WithChild;
+
+export type SelectTriggerProps = SelectTriggerPropsWithoutHTML &
+	Without<BitsPrimitiveButtonAttributes, SelectTriggerPropsWithoutHTML>;
+
+export type SelectItemSnippetProps = { selected: boolean; highlighted: boolean };
+
+export type SelectItemPropsWithoutHTML = WithChild<
 	{
 		/**
-		 * The placeholder text to display when there is no value.
+		 * The value of the item.
 		 *
-		 * @defaultValue ""
+		 * @required
 		 */
-		placeholder?: string | undefined;
-	} & DOMElement<HTMLSpanElement>
+		value: string;
+
+		/**
+		 * The label of the item. If provided, this is the item that users will search for.
+		 * If not provided, the value will be used as the label.
+		 */
+		label?: string;
+
+		/**
+		 * Whether the item is disabled.
+		 *
+		 * @defaultValue `false`
+		 */
+		disabled?: boolean;
+
+		/**
+		 * A callback function called when the item is highlighted. This can be used as a
+		 * replacement for `onfocus` since we don't actually focus the item and instead
+		 * rely on the `aria-activedescendant` attribute to indicate the highlighted item.
+		 */
+		onHighlight?: () => void;
+
+		/**
+		 * A callback function called when the item is unhighlighted. This can be used as a
+		 * replacement for `onblur` since we don't actually focus the item and instead
+		 * rely on the `aria-activedescendant` attribute to indicate the highlighted item.
+		 */
+		onUnhighlight?: () => void;
+	},
+	SelectItemSnippetProps
 >;
 
-//
+export type SelectItemProps = SelectItemPropsWithoutHTML &
+	Without<BitsPrimitiveDivAttributes, SelectItemPropsWithoutHTML>;
 
-export type SelectProps<T, Multiple extends boolean = false> = SelectPropsWithoutHTML<T, Multiple>;
+export type SelectGroupPropsWithoutHTML = WithChild;
 
-export type SelectContentProps<
-	T extends Transition = Transition,
-	In extends Transition = Transition,
-	Out extends Transition = Transition,
-> = SelectContentPropsWithoutHTML<T, In, Out> & HTMLDivAttributes;
+export type SelectGroupProps = SelectGroupPropsWithoutHTML &
+	Without<BitsPrimitiveDivAttributes, SelectGroupPropsWithoutHTML>;
 
-export type SelectGroupProps = SelectGroupPropsWithoutHTML & HTMLDivAttributes;
-export type SelectInputProps = SelectInputPropsWithoutHTML & HTMLInputAttributes;
-export type SelectLabelProps = SelectLabelPropsWithoutHTML & HTMLDivAttributes;
-export type SelectItemProps = SelectItemPropsWithoutHTML & HTMLDivAttributes;
-export type SelectSeparatorProps = SelectSeparatorPropsWithoutHTML & HTMLDivAttributes;
-export type SelectTriggerProps = SelectTriggerPropsWithoutHTML & HTMLButtonAttributes;
+export type SelectGroupHeadingPropsWithoutHTML = WithChild;
 
-export type SelectValueProps = SelectValuePropsWithoutHTML & HTMLAttributes<HTMLSpanElement>;
+export type SelectGroupHeadingProps = SelectGroupHeadingPropsWithoutHTML &
+	Without<BitsPrimitiveDivAttributes, SelectGroupHeadingPropsWithoutHTML>;
 
-export type SelectArrowProps = SelectArrowPropsWithoutHTML & HTMLDivAttributes;
+export type SelectSeparatorPropsWithoutHTML = WithChild;
 
-export type SelectIndicatorProps = SelectIndicatorPropsWithoutHTML & HTMLDivAttributes;
+export type SelectSeparatorProps = SelectSeparatorPropsWithoutHTML &
+	Without<BitsPrimitiveDivAttributes, SelectSeparatorPropsWithoutHTML>;
 
-export type SelectItemEvents<T extends Element = HTMLDivElement> = {
-	click: CustomEventHandler<MouseEvent, T>;
-	pointermove: CustomEventHandler<PointerEvent, T>;
-	focusin: CustomEventHandler<FocusEvent, T>;
-	keydown: CustomEventHandler<KeyboardEvent, T>;
-	focusout: CustomEventHandler<FocusEvent, T>;
-	pointerleave: CustomEventHandler<PointerEvent, T>;
-};
+export type SelectPortalPropsWithoutHTML = PortalProps;
 
-export type SelectTriggerEvents<T extends Element = HTMLButtonElement> = {
-	click: CustomEventHandler<MouseEvent, T>;
-	keydown: CustomEventHandler<KeyboardEvent, T>;
-};
+export type SelectPortalProps = SelectPortalPropsWithoutHTML;
 
-export type SelectLabelEvents<T extends Element = HTMLSpanElement> = {
-	click: CustomEventHandler<MouseEvent, T>;
-};
-export type SelectContentEvents<T extends Element = HTMLDivElement> = {
-	pointerleave: CustomEventHandler<PointerEvent, T>;
-	keydown: CustomEventHandler<KeyboardEvent, T>;
-};
+export type SelectArrowPropsWithoutHTML = ArrowPropsWithoutHTML;
+
+export type SelectArrowProps = ArrowProps;
+
+export type SelectViewportPropsWithoutHTML = WithChild;
+
+export type SelectViewportProps = SelectViewportPropsWithoutHTML &
+	Without<BitsPrimitiveDivAttributes, SelectViewportPropsWithoutHTML>;
+
+export type SelectScrollUpButtonPropsWithoutHTML = WithChild;
+
+export type SelectScrollUpButtonProps = SelectScrollUpButtonPropsWithoutHTML &
+	Without<BitsPrimitiveDivAttributes, SelectScrollUpButtonPropsWithoutHTML>;
+
+export type SelectScrollDownButtonPropsWithoutHTML = WithChild;
+
+export type SelectScrollDownButtonProps = SelectScrollDownButtonPropsWithoutHTML &
+	Without<BitsPrimitiveDivAttributes, SelectScrollDownButtonPropsWithoutHTML>;

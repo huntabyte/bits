@@ -2,7 +2,8 @@
 	import { Progress } from "bits-ui";
 	import { onMount } from "svelte";
 
-	let value = 13;
+	let value = $state(13);
+
 	onMount(() => {
 		const timer = setTimeout(() => (value = 66), 500);
 		return () => clearTimeout(timer);

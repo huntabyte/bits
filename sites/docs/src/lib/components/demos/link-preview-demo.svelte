@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { Avatar, LinkPreview } from "bits-ui";
-	import { CalendarBlank, MapPin } from "$icons/index.js";
-	import { flyAndScale } from "$lib/utils/index.js";
-	let loadingStatusTrigger: Avatar.Props["loadingStatus"] = undefined;
-	let loadingStatusContent: Avatar.Props["loadingStatus"] = undefined;
+	import CalendarBlank from "phosphor-svelte/lib/CalendarBlank";
+	import MapPin from "phosphor-svelte/lib/MapPin";
+
+	let loadingStatusTrigger: Avatar.RootProps["loadingStatus"] = $state("loading");
+	let loadingStatusContent: Avatar.RootProps["loadingStatus"] = $state("loading");
 </script>
 
 <LinkPreview.Root>
@@ -30,8 +31,6 @@
 	<LinkPreview.Content
 		class="w-[331px] rounded-xl border border-muted bg-background p-[17px] shadow-popover"
 		sideOffset={8}
-		transition={flyAndScale}
-		transitionConfig={{ duration: 150, y: -8 }}
 	>
 		<div class="flex space-x-4">
 			<Avatar.Root

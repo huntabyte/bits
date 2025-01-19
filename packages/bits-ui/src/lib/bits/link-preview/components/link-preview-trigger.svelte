@@ -1,46 +1,35 @@
 <script lang="ts">
-	import { melt } from "@melt-ui/svelte";
-	import { getCtx } from "../ctx.js";
-	import type { TriggerEvents, TriggerProps } from "../index.js";
-	import { createDispatcher } from "$lib/internal/events.js";
+	import { box, mergeProps } from "svelte-toolbelt";
+	import type { LinkPreviewTriggerProps } from "../types.js";
+	import { useLinkPreviewTrigger } from "../link-preview.svelte.js";
+	import { useId } from "$lib/internal/use-id.js";
+	import { FloatingLayer } from "$lib/bits/utilities/floating-layer/index.js";
 
-	type $$Props = TriggerProps;
-	type $$Events = TriggerEvents;
+	let {
+		ref = $bindable(null),
+		id = useId(),
+		child,
+		children,
+		...restProps
+	}: LinkPreviewTriggerProps = $props();
 
-	export let asChild: $$Props["asChild"] = false;
-	export let id: $$Props["id"] = undefined;
-	export let el: $$Props["el"] = undefined;
+	const triggerState = useLinkPreviewTrigger({
+		id: box.with(() => id),
+		ref: box.with(
+			() => ref,
+			(v) => (ref = v)
+		),
+	});
 
-	const {
-		elements: { trigger },
-		ids,
-		getAttrs,
-	} = getCtx();
-
-	const dispatch = createDispatcher();
-	const attrs = getAttrs("trigger");
-
-	$: if (id) {
-		ids.trigger.set(id);
-	}
-	$: builder = $trigger;
-	$: Object.assign(builder, attrs);
+	const mergedProps = $derived(mergeProps(restProps, triggerState.props));
 </script>
 
-{#if asChild}
-	<slot {builder} />
-{:else}
-	<!-- svelte-ignore a11y-missing-attribute a11y_missing_attribute -->
-	<a
-		bind:this={el}
-		use:melt={builder}
-		{...$$restProps}
-		{...attrs}
-		on:m-blur={dispatch}
-		on:m-focus={dispatch}
-		on:m-pointerenter={dispatch}
-		on:m-pointerleave={dispatch}
-	>
-		<slot {builder} />
-	</a>
-{/if}
+<FloatingLayer.Anchor {id}>
+	{#if child}
+		{@render child({ props: mergedProps })}
+	{:else}
+		<a {...mergedProps}>
+			{@render children?.()}
+		</a>
+	{/if}
+</FloatingLayer.Anchor>

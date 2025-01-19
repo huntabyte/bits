@@ -1,0 +1,3 @@
+```ts
+(event: PointerEvent) => void
+```

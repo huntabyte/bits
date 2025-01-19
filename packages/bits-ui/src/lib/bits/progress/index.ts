@@ -1,3 +1,1 @@
-export { default as Root } from "./components/progress.svelte";
-
-export type { ProgressProps as Props } from "./types.js";
+export * as Progress from "./exports.js";

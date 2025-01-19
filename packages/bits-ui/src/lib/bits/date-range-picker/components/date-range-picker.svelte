@@ -1,241 +1,176 @@
 <script lang="ts">
-	import { derived } from "svelte/store";
-	import { setCtx } from "../ctx.js";
-	import type { Props } from "../index.js";
+	import { box, mergeProps } from "svelte-toolbelt";
+	import type { DateValue } from "@internationalized/date";
+	import { useDateRangePickerRoot } from "../date-range-picker.svelte.js";
+	import type { DateRangePickerRootProps } from "../types.js";
+	import { noop } from "$lib/internal/noop.js";
+	import { usePopoverRoot } from "$lib/bits/popover/popover.svelte.js";
+	import { useDateRangeFieldRoot } from "$lib/bits/date-range-field/date-range-field.svelte.js";
+	import FloatingLayer from "$lib/bits/utilities/floating-layer/components/floating-layer.svelte";
+	import { useId } from "$lib/internal/use-id.js";
+	import type { DateRange } from "$lib/shared/index.js";
+	import { getDefaultDate } from "$lib/internal/date-time/utils.js";
 
-	type $$Props = Props;
-
-	export let open: $$Props["open"] = undefined;
-	export let onOpenChange: $$Props["onOpenChange"] = undefined;
-	export let portal: $$Props["portal"] = undefined;
-	export let value: $$Props["value"] = undefined;
-	export let onValueChange: $$Props["onValueChange"] = undefined;
-	export let placeholder: $$Props["placeholder"] = undefined;
-	export let onPlaceholderChange: $$Props["onPlaceholderChange"] = undefined;
-	export let disabled: $$Props["disabled"] = undefined;
-	export let isDateUnavailable: $$Props["isDateUnavailable"] = undefined;
-	export let granularity: $$Props["granularity"] = undefined;
-	export let hideTimeZone: $$Props["hideTimeZone"] = undefined;
-	export let hourCycle: $$Props["hourCycle"] = undefined;
-	export let locale: $$Props["locale"] = undefined;
-	export let maxValue: $$Props["maxValue"] = undefined;
-	export let minValue: $$Props["minValue"] = undefined;
-	export let readonly: $$Props["readonly"] = undefined;
-	export let validationId: $$Props["validationId"] = undefined;
-	export let descriptionId: $$Props["descriptionId"] = undefined;
-	export let preventDeselect: $$Props["preventDeselect"] = undefined;
-	export let pagedNavigation: $$Props["pagedNavigation"] = undefined;
-	export let weekStartsOn: $$Props["weekStartsOn"] = undefined;
-	export let isDateDisabled: $$Props["isDateDisabled"] = undefined;
-	export let fixedWeeks: $$Props["fixedWeeks"] = undefined;
-	export let calendarLabel: $$Props["calendarLabel"] = undefined;
-	export let weekdayFormat: $$Props["weekdayFormat"] = undefined;
-	export let startValue: $$Props["startValue"] = undefined;
-	export let numberOfMonths: $$Props["numberOfMonths"] = undefined;
-	export let onOutsideClick: $$Props["onOutsideClick"] = undefined;
-
-	const {
-		states: {
-			open: localOpen,
-			value: localValue,
-			placeholder: localPlaceholder,
-			isInvalid: localIsInvalid,
-			startValue: localStartValue,
-			endValue: localEndValue,
-		},
-		updateOption,
-		ids,
-	} = setCtx({
-		defaultOpen: open,
-		defaultValue: value,
-		defaultPlaceholder: placeholder,
-		preventDeselect,
-		pagedNavigation,
-		weekStartsOn,
-		isDateDisabled,
-		fixedWeeks,
-		calendarLabel,
-		portal,
-		disabled,
-		granularity,
-		hideTimeZone,
-		hourCycle,
-		locale,
-		maxValue,
+	let {
+		open = $bindable(false),
+		onOpenChange = noop,
+		value = $bindable(),
+		id = useId(),
+		ref = $bindable(null),
+		onValueChange = noop,
+		placeholder = $bindable(),
+		onPlaceholderChange = noop,
+		isDateUnavailable = () => false,
+		onInvalid = noop,
 		minValue,
-		readonly,
-		weekdayFormat,
-		numberOfMonths,
-		isDateUnavailable,
-		onOutsideClick,
-		onValueChange: ({ next }) => {
-			if (value !== next) {
-				onValueChange?.(next);
-				value = next;
+		maxValue,
+		disabled = false,
+		readonly = false,
+		granularity,
+		readonlySegments = [],
+		hourCycle,
+		locale = "en",
+		hideTimeZone = false,
+		required = false,
+		calendarLabel = "Event",
+		disableDaysOutsideMonth = true,
+		preventDeselect = false,
+		pagedNavigation = false,
+		weekStartsOn = 0,
+		weekdayFormat = "narrow",
+		isDateDisabled = () => false,
+		fixedWeeks = false,
+		numberOfMonths = 1,
+		closeOnRangeSelect = true,
+		onStartValueChange = noop,
+		onEndValueChange = noop,
+		validate = noop,
+		errorMessageId,
+		child,
+		children,
+		...restProps
+	}: DateRangePickerRootProps = $props();
+
+	let startValue = $state<DateValue | undefined>(value?.start);
+	let endValue = $state<DateValue | undefined>(value?.end);
+
+	if (value === undefined) {
+		value = { start: undefined, end: undefined };
+	}
+
+	if (placeholder === undefined) {
+		const defaultPlaceholder = getDefaultDate({
+			granularity,
+			defaultPlaceholder: undefined,
+			defaultValue: value?.start,
+		});
+
+		placeholder = defaultPlaceholder;
+	}
+
+	function onRangeSelect() {
+		if (closeOnRangeSelect) {
+			open = false;
+		}
+	}
+
+	const pickerRootState = useDateRangePickerRoot({
+		open: box.with(
+			() => open,
+			(v) => {
+				open = v;
+				onOpenChange(v);
 			}
-			return next;
-		},
-		onPlaceholderChange: ({ next }) => {
-			if (placeholder !== next) {
-				onPlaceholderChange?.(next);
-				placeholder = next;
+		),
+		value: box.with(
+			() => value as DateRange,
+			(v) => {
+				value = v;
+				onValueChange(v);
 			}
-			return next;
-		},
-		onOpenChange: ({ next }) => {
-			if (open !== next) {
-				onOpenChange?.(next);
-				open = next;
+		),
+		placeholder: box.with(
+			() => placeholder as DateValue,
+			(v) => {
+				placeholder = v;
+				onPlaceholderChange(v as DateValue);
 			}
-			return next;
-		},
+		),
+		isDateUnavailable: box.with(() => isDateUnavailable),
+		minValue: box.with(() => minValue),
+		maxValue: box.with(() => maxValue),
+		disabled: box.with(() => disabled),
+		readonly: box.with(() => readonly),
+		granularity: box.with(() => granularity),
+		readonlySegments: box.with(() => readonlySegments),
+		hourCycle: box.with(() => hourCycle),
+		locale: box.with(() => locale),
+		hideTimeZone: box.with(() => hideTimeZone),
+		required: box.with(() => required),
+		calendarLabel: box.with(() => calendarLabel),
+		disableDaysOutsideMonth: box.with(() => disableDaysOutsideMonth),
+		preventDeselect: box.with(() => preventDeselect),
+		pagedNavigation: box.with(() => pagedNavigation),
+		weekStartsOn: box.with(() => weekStartsOn),
+		weekdayFormat: box.with(() => weekdayFormat),
+		isDateDisabled: box.with(() => isDateDisabled),
+		fixedWeeks: box.with(() => fixedWeeks),
+		numberOfMonths: box.with(() => numberOfMonths),
+		onRangeSelect: box.with(() => onRangeSelect),
+		startValue: box.with(
+			() => startValue,
+			(v) => {
+				startValue = v;
+				onStartValueChange(v);
+			}
+		),
+		endValue: box.with(
+			() => endValue,
+			(v) => {
+				endValue = v;
+				onEndValueChange(v);
+			}
+		),
 	});
 
-	const startFieldIds = derived(
-		[
-			ids.rangeField.start.day,
-			ids.rangeField.start.dayPeriod,
-			ids.rangeField.start.field,
-			ids.rangeField.start.hour,
-			ids.rangeField.start.minute,
-			ids.rangeField.start.month,
-			ids.rangeField.start.second,
-			ids.rangeField.start.year,
-			ids.rangeField.start.timeZoneName,
-		],
-		([
-			$dayId,
-			$dayPeriodId,
-			$hourId,
-			$minuteId,
-			$monthId,
-			$secondId,
-			$yearId,
-			$timeZoneNameId,
-		]) => ({
-			day: $dayId,
-			dayPeriod: $dayPeriodId,
-			hour: $hourId,
-			minute: $minuteId,
-			month: $monthId,
-			second: $secondId,
-			year: $yearId,
-			timeZoneName: $timeZoneNameId,
-		})
-	);
+	usePopoverRoot({
+		open: pickerRootState.props.open,
+	});
 
-	const endFieldIds = derived(
-		[
-			ids.rangeField.end.day,
-			ids.rangeField.end.dayPeriod,
-			ids.rangeField.end.field,
-			ids.rangeField.end.hour,
-			ids.rangeField.end.minute,
-			ids.rangeField.end.month,
-			ids.rangeField.end.second,
-			ids.rangeField.end.year,
-			ids.rangeField.end.timeZoneName,
-		],
-		([
-			$dayId,
-			$dayPeriodId,
-			$hourId,
-			$minuteId,
-			$monthId,
-			$secondId,
-			$yearId,
-			$timeZoneNameId,
-		]) => ({
-			day: $dayId,
-			dayPeriod: $dayPeriodId,
-			hour: $hourId,
-			minute: $minuteId,
-			month: $monthId,
-			second: $secondId,
-			year: $yearId,
-			timeZoneName: $timeZoneNameId,
-		})
-	);
+	const fieldRootState = useDateRangeFieldRoot({
+		value: pickerRootState.props.value,
+		disabled: pickerRootState.props.disabled,
+		readonly: pickerRootState.props.readonly,
+		readonlySegments: pickerRootState.props.readonlySegments,
+		validate: box.with(() => validate),
+		minValue: pickerRootState.props.minValue,
+		maxValue: pickerRootState.props.maxValue,
+		granularity: pickerRootState.props.granularity,
+		hideTimeZone: pickerRootState.props.hideTimeZone,
+		hourCycle: pickerRootState.props.hourCycle,
+		locale: pickerRootState.props.locale,
+		required: pickerRootState.props.required,
+		placeholder: pickerRootState.props.placeholder,
+		id: box.with(() => id),
+		ref: box.with(
+			() => ref,
+			(v) => (ref = v)
+		),
+		startValue: pickerRootState.props.startValue,
+		endValue: pickerRootState.props.endValue,
+		onInvalid: box.with(() => onInvalid),
+		errorMessageId: box.with(() => errorMessageId),
+	});
 
-	const idValues = derived(
-		[
-			ids.rangeField.field.field,
-			ids.rangeField.field.description,
-			ids.rangeField.field.label,
-			ids.rangeField.field.validation,
-			ids.calendar.calendar,
-			ids.popover.content,
-			ids.popover.trigger,
-			startFieldIds,
-			endFieldIds,
-		],
-		([
-			$fieldId,
-			$descriptionId,
-			$labelId,
-			$validationId,
-			$calendarId,
-			$contentId,
-			$triggerId,
-			$startFieldIds,
-			$endFieldIds,
-		]) => ({
-			field: $fieldId,
-			description: $descriptionId,
-			label: $labelId,
-			validation: $validationId,
-			calendar: $calendarId,
-			content: $contentId,
-			trigger: $triggerId,
-			startField: $startFieldIds,
-			endField: $endFieldIds,
-		})
-	);
-
-	$: if (validationId) {
-		ids.rangeField.field.validation.set(validationId);
-	}
-
-	$: if (descriptionId) {
-		ids.rangeField.field.description.set(descriptionId);
-	}
-
-	$: startValue = $localStartValue;
-
-	$: if (value !== $localValue) {
-		const nextValue = { start: value?.start, end: value?.end };
-
-		if (nextValue.start !== $localStartValue) localStartValue.set(nextValue.start);
-		if (nextValue.end !== $localEndValue) localEndValue.set(nextValue.end);
-		localValue.set(nextValue);
-	}
-	$: placeholder !== undefined && localPlaceholder.set(placeholder);
-	$: open !== undefined && localOpen.set(open);
-
-	$: updateOption("disabled", disabled);
-	$: updateOption("isDateUnavailable", isDateUnavailable);
-	$: updateOption("granularity", granularity);
-	$: updateOption("hideTimeZone", hideTimeZone);
-	$: updateOption("hourCycle", hourCycle);
-	$: updateOption("locale", locale);
-	$: updateOption("maxValue", maxValue);
-	$: updateOption("minValue", minValue);
-	$: updateOption("readonly", readonly);
-	$: updateOption("fixedWeeks", fixedWeeks);
-	$: updateOption("preventDeselect", preventDeselect);
-	$: updateOption("pagedNavigation", pagedNavigation);
-	$: updateOption("weekStartsOn", weekStartsOn);
-	$: updateOption("isDateDisabled", isDateDisabled);
-	$: updateOption("calendarLabel", calendarLabel);
-	$: updateOption("weekdayFormat", weekdayFormat);
-	$: updateOption("numberOfMonths", numberOfMonths);
-	$: updateOption("onOutsideClick", onOutsideClick);
-	$: updateOption("portal", portal);
+	const mergedProps = $derived(mergeProps(restProps, fieldRootState.props));
 </script>
 
-<slot
-	ids={$idValues}
-	isInvalid={$localIsInvalid}
-	startValue={$localStartValue}
-	endValue={$localEndValue}
-/>
+<FloatingLayer>
+	{#if child}
+		{@render child({ props: mergedProps })}
+	{:else}
+		<div {...mergedProps}>
+			{@render children?.()}
+		</div>
+	{/if}
+</FloatingLayer>

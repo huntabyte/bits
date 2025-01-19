@@ -1,6 +1,22 @@
-import type { CreateSeparatorProps as MeltSeparatorProps } from "@melt-ui/svelte";
-import type { DOMElement, Expand, HTMLDivAttributes } from "$lib/internal/index.js";
+import type { WithChild, Without } from "$lib/internal/types.js";
+import type { Orientation } from "$lib/shared/index.js";
+import type { BitsPrimitiveDivAttributes } from "$lib/shared/attributes.js";
 
-export type SeparatorPropsWithoutHTML = Expand<MeltSeparatorProps & DOMElement>;
+export type SeparatorRootPropsWithoutHTML = WithChild<{
+	/**
+	 * The orientation of the separator.
+	 *
+	 * @defaultValue "horizontal"
+	 */
+	orientation?: Orientation;
 
-export type SeparatorProps = SeparatorPropsWithoutHTML & HTMLDivAttributes;
+	/**
+	 * Whether the separator is decorative and should be hidden from assistive technologies.
+	 *
+	 * @defaultValue false
+	 */
+	decorative?: boolean;
+}>;
+
+export type SeparatorRootProps = SeparatorRootPropsWithoutHTML &
+	Without<BitsPrimitiveDivAttributes, SeparatorRootPropsWithoutHTML>;

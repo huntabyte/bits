@@ -1,0 +1,3 @@
+```ts
+(event: FocusEvent) => void
+```

@@ -1,9 +1,22 @@
+import type { Component } from "svelte";
+import CalendarBlank from "phosphor-svelte/lib/CalendarBlank";
+import CirclesThreePlus from "phosphor-svelte/lib/CirclesThreePlus";
+import CodeBlock from "phosphor-svelte/lib/CodeBlock";
+import Compass from "phosphor-svelte/lib/Compass";
+import Link from "phosphor-svelte/lib/Link";
+import Palette from "phosphor-svelte/lib/Palette";
+import Resize from "phosphor-svelte/lib/Resize";
+import Sticker from "phosphor-svelte/lib/Sticker";
+import FigmaLogo from "phosphor-svelte/lib/FigmaLogo";
+import { componentDocs, typeHelperDocs, utilityDocs } from "$content/index.js";
+
 export type NavItem = {
 	title: string;
 	href?: string;
 	disabled?: boolean;
 	external?: boolean;
 	label?: string;
+	icon?: Component;
 };
 
 export type SidebarNavItem = NavItem & {
@@ -18,6 +31,63 @@ export type Navigation = {
 	main: NavItem[];
 	sidebar: SidebarNavItem[];
 };
+
+const filteredComponents = componentDocs;
+
+/**
+ * Generates the navigation items for the components section of the sidebar.
+ */
+function generateComponentsNav() {
+	const componentNavItems: SidebarNavItem[] = [];
+
+	for (const comp of filteredComponents) {
+		componentNavItems.push({
+			title: comp.title,
+			href: `/docs/components/${comp.slug}`,
+			label: "navLabel" in comp ? (comp.navLabel as string) : undefined,
+			items: [],
+		});
+	}
+
+	componentNavItems.sort((a, b) => a.title.localeCompare(b.title));
+	return componentNavItems;
+}
+
+/**
+ * Generates the navigation items for the utilities section of the sidebar.
+ */
+function generateUtilitiesNav(): SidebarNavItem[] {
+	const utilityNavItems: SidebarNavItem[] = [];
+
+	for (const comp of utilityDocs) {
+		utilityNavItems.push({
+			title: comp.title,
+			href: `/docs/utilities/${comp.slug}`,
+			items: [],
+		});
+	}
+
+	utilityNavItems.sort((a, b) => a.title.localeCompare(b.title));
+	return utilityNavItems;
+}
+
+/**
+ * Generates the navigation items for the type helpers section of the sidebar.
+ */
+function generateTypeHelpersNav(): SidebarNavItem[] {
+	const utilityNavItems: SidebarNavItem[] = [];
+
+	for (const comp of typeHelperDocs) {
+		utilityNavItems.push({
+			title: comp.title,
+			href: `/docs/type-helpers/${comp.slug}`,
+			items: [],
+		});
+	}
+
+	utilityNavItems.sort((a, b) => a.title.localeCompare(b.title));
+	return utilityNavItems;
+}
 
 export const navigation: Navigation = {
 	main: [
@@ -34,205 +104,70 @@ export const navigation: Navigation = {
 					title: "Introduction",
 					href: "/docs/introduction",
 					items: [],
+					icon: Sticker,
 				},
 				{
 					title: "Getting Started",
 					href: "/docs/getting-started",
 					items: [],
+					icon: Compass,
 				},
 				{
-					title: "Delegation",
-					href: "/docs/delegation",
+					title: "Child Snippet",
+					href: "/docs/child-snippet",
 					items: [],
+					icon: CodeBlock,
+				},
+				{
+					title: "Ref",
+					href: "/docs/ref",
+					items: [],
+					icon: Link,
+				},
+				{
+					title: "Transitions",
+					href: "/docs/transitions",
+					items: [],
+					icon: Resize,
 				},
 				{
 					title: "Styling",
 					href: "/docs/styling",
 					items: [],
+					icon: Palette,
+				},
+				{
+					title: "Dates",
+					href: "/docs/dates",
+					items: [],
+					icon: CalendarBlank,
+				},
+				{
+					title: "Controlled State",
+					href: "/docs/controlled-state",
+					items: [],
+					icon: CirclesThreePlus,
+				},
+				{
+					title: "Figma",
+					href: "/docs/figma-file",
+					items: [],
+					icon: FigmaLogo,
+					label: "New",
 				},
 			],
 		},
 		{
 			title: "Components",
-			items: [
-				{
-					title: "Accordion",
-					href: "/docs/components/accordion",
-					items: [],
-				},
-				{
-					title: "Alert Dialog",
-					href: "/docs/components/alert-dialog",
-					items: [],
-				},
-				{
-					title: "Aspect Ratio",
-					href: "/docs/components/aspect-ratio",
-					items: [],
-				},
-				{
-					title: "Avatar",
-					href: "/docs/components/avatar",
-					items: [],
-				},
-				{
-					title: "Button",
-					href: "/docs/components/button",
-					items: [],
-				},
-				{
-					title: "Calendar",
-					href: "/docs/components/calendar",
-					items: [],
-				},
-				{
-					title: "Checkbox",
-					href: "/docs/components/checkbox",
-					items: [],
-				},
-				{
-					title: "Collapsible",
-					href: "/docs/components/collapsible",
-					items: [],
-				},
-				{
-					title: "Combobox",
-					href: "/docs/components/combobox",
-					label: "New",
-					items: [],
-				},
-				{
-					title: "Context Menu",
-					href: "/docs/components/context-menu",
-					items: [],
-				},
-				{
-					title: "Date Field",
-					href: "/docs/components/date-field",
-					items: [],
-				},
-				{
-					title: "Date Picker",
-					href: "/docs/components/date-picker",
-					items: [],
-				},
-				{
-					title: "Date Range Field",
-					href: "/docs/components/date-range-field",
-					items: [],
-				},
-				{
-					title: "Date Range Picker",
-					href: "/docs/components/date-range-picker",
-					items: [],
-				},
-				{
-					title: "Dialog",
-					href: "/docs/components/dialog",
-					items: [],
-				},
-				{
-					title: "Dropdown Menu",
-					href: "/docs/components/dropdown-menu",
-					items: [],
-				},
-				{
-					title: "Label",
-					href: "/docs/components/label",
-					items: [],
-				},
-				{
-					title: "Link Preview",
-					href: "/docs/components/link-preview",
-					items: [],
-				},
-				{
-					title: "Menubar",
-					href: "/docs/components/menubar",
-					items: [],
-				},
-				{
-					title: "Pagination",
-					href: "/docs/components/pagination",
-					items: [],
-				},
-				{
-					title: "PIN Input",
-					href: "/docs/components/pin-input",
-					items: [],
-				},
-				{
-					title: "Popover",
-					href: "/docs/components/popover",
-					items: [],
-				},
-				{
-					title: "Progress",
-					href: "/docs/components/progress",
-					items: [],
-				},
-				{
-					title: "Radio Group",
-					href: "/docs/components/radio-group",
-					items: [],
-				},
-				{
-					title: "Range Calendar",
-					href: "/docs/components/range-calendar",
-					items: [],
-				},
-				{
-					title: "Scroll Area",
-					href: "/docs/components/scroll-area",
-					label: "New",
-					items: [],
-				},
-				{
-					title: "Select",
-					href: "/docs/components/select",
-					items: [],
-				},
-				{
-					title: "Separator",
-					href: "/docs/components/separator",
-					items: [],
-				},
-				{
-					title: "Slider",
-					href: "/docs/components/slider",
-					items: [],
-				},
-				{
-					title: "Switch",
-					href: "/docs/components/switch",
-					items: [],
-				},
-				{
-					title: "Tabs",
-					href: "/docs/components/tabs",
-					items: [],
-				},
-				{
-					title: "Toggle",
-					href: "/docs/components/toggle",
-					items: [],
-				},
-				{
-					title: "Toggle Group",
-					href: "/docs/components/toggle-group",
-					items: [],
-				},
-				{
-					title: "Toolbar",
-					href: "/docs/components/toolbar",
-					items: [],
-				},
-				{
-					title: "Tooltip",
-					href: "/docs/components/tooltip",
-					items: [],
-				},
-			],
+			items: generateComponentsNav(),
+		},
+		{
+			title: "Utilities",
+			items: generateUtilitiesNav(),
+		},
+		{
+			title: "Type Helpers",
+			items: generateTypeHelpersNav(),
 		},
 	],
 };

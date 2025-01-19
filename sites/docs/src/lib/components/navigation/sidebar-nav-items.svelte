@@ -3,11 +3,11 @@
 	import type { SidebarNavItem } from "$lib/config/index.js";
 	import { cn } from "$lib/utils/index.js";
 
-	export let items: SidebarNavItem[] = [];
+	let { items = [] }: { items: SidebarNavItem[] } = $props();
 </script>
 
 {#if items.length}
-	<div class="grid grid-flow-row auto-rows-max gap-0.5 pl-4 text-sm">
+	<div class="grid grid-flow-row auto-rows-max gap-[1px] pl-4 text-sm">
 		{#each items as item, index (index)}
 			{#if item.href}
 				<a

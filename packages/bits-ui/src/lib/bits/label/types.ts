@@ -1,11 +1,7 @@
-import type { HTMLLabelAttributes } from "svelte/elements";
-import type { CustomEventHandler } from "$lib/index.js";
-import type { DOMElement } from "$lib/internal/types.js";
+import type { WithChild, Without } from "$lib/internal/types.js";
+import type { BitsPrimitiveLabelAttributes } from "$lib/shared/attributes.js";
 
-export type LabelPropsWithoutHTML = DOMElement<HTMLLabelElement>;
+export type LabelRootPropsWithoutHTML = WithChild;
 
-export type LabelProps = LabelPropsWithoutHTML & HTMLLabelAttributes;
-
-export type LabelEvents<T extends Element = HTMLLabelElement> = {
-	mousedown: CustomEventHandler<MouseEvent, T>;
-};
+export type LabelRootProps = LabelRootPropsWithoutHTML &
+	Without<BitsPrimitiveLabelAttributes, LabelRootPropsWithoutHTML>;

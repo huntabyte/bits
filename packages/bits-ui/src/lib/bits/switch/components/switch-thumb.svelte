@@ -1,26 +1,32 @@
 <script lang="ts">
-	import { getCtx } from "../ctx.js";
-	import type { ThumbProps } from "../index.js";
+	import { box, mergeProps } from "svelte-toolbelt";
+	import type { SwitchThumbProps } from "../types.js";
+	import { useSwitchThumb } from "../switch.svelte.js";
+	import { useId } from "$lib/internal/use-id.js";
 
-	type $$Props = ThumbProps;
+	let {
+		child,
+		children,
+		ref = $bindable(null),
+		id = useId(),
+		...restProps
+	}: SwitchThumbProps = $props();
 
-	export let asChild: $$Props["asChild"] = false;
-	export let el: $$Props["el"] = undefined;
+	const thumbState = useSwitchThumb({
+		id: box.with(() => id),
+		ref: box.with(
+			() => ref,
+			(v) => (ref = v)
+		),
+	});
 
-	const {
-		states: { checked },
-		getAttrs,
-	} = getCtx();
-
-	$: attrs = {
-		...getAttrs("thumb"),
-		"data-state": $checked ? "checked" : "unchecked",
-		"data-checked": $checked ? "" : undefined,
-	};
+	const mergedProps = $derived(mergeProps(restProps, thumbState.props));
 </script>
 
-{#if asChild}
-	<slot {attrs} checked={$checked} />
+{#if child}
+	{@render child({ props: mergedProps, checked: thumbState.root.checked.current })}
 {:else}
-	<span bind:this={el} {...$$restProps} {...attrs}></span>
+	<span {...mergedProps}>
+		{@render children?.({ checked: thumbState.root.checked.current })}
+	</span>
 {/if}

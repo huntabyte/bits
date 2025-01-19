@@ -1,12 +1,12 @@
 <script lang="ts">
+	import type { HTMLAttributes } from "svelte/elements";
 	import { cn } from "$lib/utils/index.js";
 
-	let className: string | undefined | null = undefined;
-	export { className as class };
+	let { class: className, children, ...restProps }: HTMLAttributes<HTMLTableElement> = $props();
 </script>
 
 <div class="my-6 w-full overflow-y-auto">
-	<table class={cn("w-full", className)} {...$$restProps}>
-		<slot />
+	<table class={cn("w-full", className)} {...restProps}>
+		{@render children?.()}
 	</table>
 </div>

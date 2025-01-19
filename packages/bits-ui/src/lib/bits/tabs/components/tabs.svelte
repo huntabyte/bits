@@ -1,54 +1,50 @@
 <script lang="ts">
-	import { melt } from "@melt-ui/svelte";
-	import { setCtx } from "../ctx.js";
-	import type { Props } from "../index.js";
+	import { box, mergeProps } from "svelte-toolbelt";
+	import type { TabsRootProps } from "../types.js";
+	import { useTabsRoot } from "../tabs.svelte.js";
+	import { useId } from "$lib/internal/use-id.js";
+	import { noop } from "$lib/internal/noop.js";
 
-	type $$Props = Props;
-	export let orientation: $$Props["orientation"] = undefined;
-	export let activateOnFocus: $$Props["activateOnFocus"] = undefined;
-	export let loop: $$Props["loop"] = undefined;
-	export let autoSet: $$Props["autoSet"] = undefined;
-	export let value: $$Props["value"] = undefined;
-	export let onValueChange: $$Props["onValueChange"] = undefined;
-	export let asChild: $$Props["asChild"] = false;
-	export let el: $$Props["el"] = undefined;
+	let {
+		id = useId(),
+		ref = $bindable(null),
+		value = $bindable(""),
+		onValueChange = noop,
+		orientation = "horizontal",
+		loop = true,
+		activationMode = "automatic",
+		disabled = false,
+		children,
+		child,
+		...restProps
+	}: TabsRootProps = $props();
 
-	const {
-		elements: { root },
-		states: { value: localValue },
-		updateOption,
-		getAttrs,
-	} = setCtx({
-		orientation,
-		activateOnFocus,
-		loop,
-		autoSet,
-		defaultValue: value,
-		onValueChange: ({ next }) => {
-			if (value !== next) {
-				onValueChange?.(next);
-				value = next;
+	const rootState = useTabsRoot({
+		id: box.with(() => id),
+		value: box.with(
+			() => value,
+			(v) => {
+				value = v;
+				onValueChange(v);
 			}
-			return next;
-		},
+		),
+		orientation: box.with(() => orientation),
+		loop: box.with(() => loop),
+		activationMode: box.with(() => activationMode),
+		disabled: box.with(() => disabled),
+		ref: box.with(
+			() => ref,
+			(v) => (ref = v)
+		),
 	});
 
-	const attrs = getAttrs("root");
-
-	$: value !== undefined && localValue.set(value);
-	$: updateOption("orientation", orientation);
-	$: updateOption("activateOnFocus", activateOnFocus);
-	$: updateOption("loop", loop);
-	$: updateOption("autoSet", autoSet);
-
-	$: builder = $root;
-	$: Object.assign(builder, attrs);
+	const mergedProps = $derived(mergeProps(restProps, rootState.props));
 </script>
 
-{#if asChild}
-	<slot {builder} value={$localValue} />
+{#if child}
+	{@render child({ props: mergedProps })}
 {:else}
-	<div bind:this={el} use:melt={builder} {...$$restProps}>
-		<slot {builder} value={$localValue} />
+	<div {...mergedProps}>
+		{@render children?.()}
 	</div>
 {/if}

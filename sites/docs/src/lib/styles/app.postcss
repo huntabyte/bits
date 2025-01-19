@@ -25,6 +25,7 @@
 		--accent: 204 94% 94%;
 		--accent-foreground: 204 80% 16%;
 		--destructive: 347 77% 50%;
+		--tertiary: 37.7 92.1% 50.2%;
 
 		/* black */
 		--constrast: 0 0% 0%;
@@ -58,6 +59,8 @@
 		--accent: 204 90 90%;
 		--accent-foreground: 204 94% 94%;
 		--destructive: 350 89% 60%;
+
+		--tertiary: 61.3 100% 82.2%;
 
 		/* white */
 		--constrast: 0 0% 100%;
@@ -100,7 +103,7 @@
 
 	/* === Scrollbars === */
 
-	::-webkit-scrollbar {
+	/* ::-webkit-scrollbar {
 		@apply w-2;
 		@apply h-2;
 	}
@@ -109,12 +112,12 @@
 		@apply !bg-transparent;
 	}
 	::-webkit-scrollbar-thumb {
-		@apply rounded-card-lg !bg-dark-10;
+		@apply rounded-card-lg !bg-muted-foreground;
 	}
 
 	::-webkit-scrollbar-corner {
 		background: rgba(0, 0, 0, 0);
-	}
+	} */
 
 	/* Firefox */
 	/* https://developer.mozilla.org/en-US/docs/Web/CSS/scrollbar-color#browser_compatibility */
@@ -142,10 +145,10 @@
 }
 
 @layer components {
-	*:not(body) {
+	*:not(body):not(.focus-override) {
 		outline: none !important;
 		&:focus-visible {
-			@apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-background;
+			@apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-1 focus-visible:ring-offset-background;
 		}
 	}
 

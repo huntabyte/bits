@@ -1,118 +1,70 @@
-<script lang="ts" context="module">
-	type T = unknown;
-	type Multiple = boolean;
-</script>
+<script lang="ts">
+	import { type WritableBox, box } from "svelte-toolbelt";
+	import type { ComboboxRootProps } from "../types.js";
+	import { noop } from "$lib/internal/noop.js";
+	import FloatingLayer from "$lib/bits/utilities/floating-layer/components/floating-layer.svelte";
+	import { useSelectRoot } from "$lib/bits/select/select.svelte.js";
+	import ListboxHiddenInput from "$lib/bits/select/components/select-hidden-input.svelte";
 
-<script lang="ts" generics="T, Multiple extends boolean = false">
-	import { derived } from "svelte/store";
-	import { setCtx } from "../ctx.js";
-	import type { Props } from "../index.js";
-	import { arraysAreEqual } from "$lib/internal/arrays.js";
+	let {
+		value = $bindable(),
+		onValueChange = noop,
+		name = "",
+		disabled = false,
+		type,
+		open = $bindable(false),
+		onOpenChange = noop,
+		loop = false,
+		scrollAlignment = "nearest",
+		required = false,
+		items = [],
+		allowDeselect = true,
+		children,
+	}: ComboboxRootProps = $props();
 
-	type $$Props = Props<T, Multiple>;
+	if (value === undefined) {
+		const defaultValue = type === "single" ? "" : [];
+		value = defaultValue;
+	}
 
-	export let required: $$Props["required"] = undefined;
-	export let disabled: $$Props["disabled"] = undefined;
-	export let preventScroll: $$Props["preventScroll"] = undefined;
-	export let loop: $$Props["loop"] = undefined;
-	export let closeOnEscape: $$Props["closeOnEscape"] = undefined;
-	export let closeOnOutsideClick: $$Props["closeOnOutsideClick"] = undefined;
-	export let portal: $$Props["portal"] = undefined;
-	export let name: $$Props["name"] = undefined;
-	export let multiple: $$Props["multiple"] = false as Multiple;
-	export let selected: $$Props["selected"] = undefined;
-	export let onSelectedChange: $$Props["onSelectedChange"] = undefined;
-	export let open: $$Props["open"] = undefined;
-	export let onOpenChange: $$Props["onOpenChange"] = undefined;
-	export let items: $$Props["items"] = [];
-	export let onOutsideClick: $$Props["onOutsideClick"] = undefined;
-	export let inputValue: $$Props["inputValue"] = "";
-	export let touchedInput: boolean = false;
-
-	const {
-		states: {
-			open: localOpen,
-			selected: localSelected,
-			inputValue: localInputValue,
-			touchedInput: localTouchedInput,
-		},
-		updateOption,
-		ids,
-	} = setCtx<T, Multiple>({
-		required,
-		disabled,
-		preventScroll,
-		loop,
-		closeOnEscape,
-		closeOnOutsideClick,
-		portal,
-		name,
-		onOutsideClick,
-		multiple: multiple as Multiple,
-		forceVisible: true,
-		defaultSelected: Array.isArray(selected)
-			? ([...selected] as $$Props["selected"])
-			: (selected as any),
-		defaultOpen: open,
-		onSelectedChange: (({ next }: { next: $$Props["selected"] }) => {
-			if (Array.isArray(next)) {
-				if (!Array.isArray(selected) || !arraysAreEqual(selected, next)) {
-					onSelectedChange?.(next);
-					selected = next;
-					return next;
-				}
-				return next;
+	const rootState = useSelectRoot({
+		type,
+		value: box.with(
+			() => value!,
+			(v) => {
+				value = v;
+				// @ts-expect-error - we know
+				onValueChange(v);
 			}
-
-			if (selected !== next) {
-				onSelectedChange?.(next);
-				selected = next;
+		) as WritableBox<string> | WritableBox<string[]>,
+		disabled: box.with(() => disabled),
+		required: box.with(() => required),
+		open: box.with(
+			() => open,
+			(v) => {
+				open = v;
+				onOpenChange(v);
 			}
-
-			inputValue = next?.label ?? (typeof next?.value === "string" ? next?.value : "");
-			localInputValue.set(inputValue);
-			return next;
-		}) as any,
-		onOpenChange: ({ next }) => {
-			if (open !== next) {
-				onOpenChange?.(next);
-				open = next;
-			}
-			return next;
-		},
-		items,
+		),
+		loop: box.with(() => loop),
+		scrollAlignment: box.with(() => scrollAlignment),
+		name: box.with(() => name),
+		isCombobox: true,
+		items: box.with(() => items),
+		allowDeselect: box.with(() => allowDeselect),
 	});
-
-	const idValues = derived(
-		[ids.menu, ids.trigger, ids.label],
-		([$menuId, $triggerId, $labelId]) => ({
-			menu: $menuId,
-			trigger: $triggerId,
-			label: $labelId,
-		})
-	);
-
-	$: touchedInput = $localTouchedInput;
-
-	$: if ($localTouchedInput) inputValue = $localInputValue;
-	$: inputValue !== undefined && localInputValue.set(inputValue);
-
-	$: open !== undefined && localOpen.set(open);
-	$: selected !== undefined &&
-		localSelected.set(
-			Array.isArray(selected) ? ([...selected] as $$Props["selected"]) : (selected as any)
-		);
-
-	$: updateOption("required", required);
-	$: updateOption("disabled", disabled);
-	$: updateOption("preventScroll", preventScroll);
-	$: updateOption("loop", loop);
-	$: updateOption("closeOnEscape", closeOnEscape);
-	$: updateOption("closeOnOutsideClick", closeOnOutsideClick);
-	$: updateOption("portal", portal);
-	$: updateOption("name", name);
-	$: updateOption("multiple", multiple);
-	$: updateOption("onOutsideClick", onOutsideClick);
 </script>
 
-<slot ids={$idValues} />
+<FloatingLayer>
+	{@render children?.()}
+</FloatingLayer>
+
+{#if Array.isArray(rootState.value.current)}
+	{#if rootState.value.current.length}
+		{#each rootState.value.current as item}
+			<ListboxHiddenInput value={item} />
+		{/each}
+	{/if}
+{:else}
+	<ListboxHiddenInput bind:value={rootState.value.current as string} />
+{/if}

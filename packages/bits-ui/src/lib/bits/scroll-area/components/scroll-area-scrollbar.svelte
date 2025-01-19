@@ -1,26 +1,38 @@
 <script lang="ts">
-	import { writable } from "svelte/store";
-	import type { ScrollbarProps } from "../index.js";
-	import { setScrollbarOrientation } from "../ctx.js";
-	import ScrollAreaScrollbarY from "./scroll-area-scrollbar-y.svelte";
-	import ScrollAreaScrollbarX from "./scroll-area-scrollbar-x.svelte";
+	import { box } from "svelte-toolbelt";
+	import type { ScrollAreaScrollbarProps } from "../types.js";
+	import { useScrollAreaScrollbar } from "../scroll-area.svelte.js";
+	import ScrollAreaScrollbarAuto from "./scroll-area-scrollbar-auto.svelte";
+	import ScrollAreaScrollbarScroll from "./scroll-area-scrollbar-scroll.svelte";
+	import ScrollAreaScrollbarHover from "./scroll-area-scrollbar-hover.svelte";
+	import ScrollAreaScrollbarVisible from "./scroll-area-scrollbar-visible.svelte";
+	import { useId } from "$lib/internal/use-id.js";
 
-	type $$Props = ScrollbarProps;
+	let {
+		ref = $bindable(null),
+		id = useId(),
+		orientation,
+		...restProps
+	}: ScrollAreaScrollbarProps = $props();
 
-	export let orientation: $$Props["orientation"];
-	const orientationStore = writable(orientation);
+	const scrollbarState = useScrollAreaScrollbar({
+		orientation: box.with(() => orientation),
+		id: box.with(() => id),
+		ref: box.with(
+			() => ref,
+			(v) => (ref = v)
+		),
+	});
 
-	setScrollbarOrientation(orientationStore);
-
-	$: orientationStore.set(orientation);
+	const type = $derived(scrollbarState.root.type.current);
 </script>
 
-{#if $orientationStore === "vertical"}
-	<ScrollAreaScrollbarY {...$$restProps} let:builder>
-		<slot {builder} />
-	</ScrollAreaScrollbarY>
-{:else}
-	<ScrollAreaScrollbarX {...$$restProps} let:builder>
-		<slot {builder} />
-	</ScrollAreaScrollbarX>
+{#if type === "hover"}
+	<ScrollAreaScrollbarHover {...restProps} {id} />
+{:else if type === "scroll"}
+	<ScrollAreaScrollbarScroll {...restProps} {id} />
+{:else if type === "auto"}
+	<ScrollAreaScrollbarAuto {...restProps} {id} />
+{:else if type === "always"}
+	<ScrollAreaScrollbarVisible {...restProps} {id} />
 {/if}

@@ -1,67 +1,60 @@
 <script lang="ts">
-	import { melt } from "@melt-ui/svelte";
-	import { setCtx } from "../ctx.js";
-	import type { Props } from "../index.js";
-	import { arraysAreEqual } from "$lib/internal/arrays.js";
+	import { type WritableBox, box } from "svelte-toolbelt";
+	import { mergeProps } from "svelte-toolbelt";
+	import type { ToggleGroupRootProps } from "../types.js";
+	import { useToggleGroupRoot } from "../toggle-group.svelte.js";
+	import { useId } from "$lib/internal/use-id.js";
+	import { noop } from "$lib/internal/noop.js";
 
-	type T = $$Generic<"single" | "multiple">;
-	type $$Props = Props<T>;
-
-	export let type: $$Props["type"] = "single" as T;
-	export let disabled: $$Props["disabled"] = undefined;
-	export let loop: $$Props["loop"] = undefined;
-	export let value: $$Props["value"] = undefined;
-	export let orientation: $$Props["orientation"] = undefined;
-	export let onValueChange: $$Props["onValueChange"] = undefined;
-	export let asChild: $$Props["asChild"] = false;
-	export let el: $$Props["el"] = undefined;
-
-	const {
-		elements: { root },
-		states: { value: localValue },
-		updateOption,
-		getAttrs,
-	} = setCtx<T>({
-		disabled,
+	let {
+		id = useId(),
+		ref = $bindable(null),
+		value = $bindable(),
+		onValueChange = noop,
 		type,
-		defaultValue: value,
-		loop,
-		orientation,
-		onValueChange: (({ next }: { next: $$Props["value"] }) => {
-			if (Array.isArray(next)) {
-				if (!Array.isArray(value) || !arraysAreEqual(value, next)) {
-					onValueChange?.(next);
-					value = next;
-					return next;
-				}
-				return next;
-			}
+		disabled = false,
+		loop = true,
+		orientation = "horizontal",
+		rovingFocus = true,
+		child,
+		children,
+		...restProps
+	}: ToggleGroupRootProps = $props();
 
-			if (value !== next) {
-				onValueChange?.(next);
-				value = next;
+	if (value === undefined) {
+		const defaultValue = type === "single" ? "" : [];
+
+		value = defaultValue;
+	}
+
+	const rootState = useToggleGroupRoot({
+		id: box.with(() => id),
+		value: box.with(
+			() => value!,
+			(v) => {
+				value = v;
+				// @ts-expect-error - we know
+				onValueChange(v);
 			}
-			return next;
-		}) as any,
+		) as WritableBox<string> | WritableBox<string[]>,
+		disabled: box.with(() => disabled),
+		loop: box.with(() => loop),
+		orientation: box.with(() => orientation),
+		rovingFocus: box.with(() => rovingFocus),
+		type,
+		ref: box.with(
+			() => ref,
+			(v) => (ref = v)
+		),
 	});
 
-	const attrs = getAttrs("root");
-
-	$: value !== undefined && localValue.set(Array.isArray(value) ? [...value] : value);
-
-	$: updateOption("disabled", disabled);
-	$: updateOption("loop", loop);
-	$: updateOption("type", type);
-	$: updateOption("orientation", orientation);
-
-	$: builder = $root;
-	$: Object.assign(builder, attrs);
+	const mergedProps = $derived(mergeProps(restProps, rootState.props));
 </script>
 
-{#if asChild}
-	<slot {builder} />
+{#if child}
+	{@render child({ props: mergedProps })}
 {:else}
-	<div bind:this={el} use:melt={builder} {...$$restProps}>
-		<slot {builder} />
+	<div {...mergedProps}>
+		{@render children?.()}
 	</div>
 {/if}

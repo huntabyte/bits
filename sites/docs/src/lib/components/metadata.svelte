@@ -2,9 +2,9 @@
 	import { page } from "$app/stores";
 	import { siteConfig } from "$lib/config/index.js";
 
-	export let title: string = siteConfig.name;
-
-	$: title = $page.data?.title ? `${$page.data.title} - ${siteConfig.name}` : siteConfig.name;
+	const title = $derived(
+		$page.data?.title ? `${$page.data.title} - ${siteConfig.name}` : siteConfig.name
+	);
 </script>
 
 <svelte:head>

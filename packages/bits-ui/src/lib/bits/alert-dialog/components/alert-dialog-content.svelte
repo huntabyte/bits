@@ -1,121 +1,107 @@
 <script lang="ts">
-	import { melt } from "@melt-ui/svelte";
-	import { getCtx } from "../ctx.js";
-	import type { ContentProps } from "../index.js";
-	import type { Transition } from "$lib/internal/index.js";
+	import { box, mergeProps } from "svelte-toolbelt";
+	import type { AlertDialogContentProps } from "../types.js";
+	import DismissibleLayer from "$lib/bits/utilities/dismissible-layer/dismissible-layer.svelte";
+	import EscapeLayer from "$lib/bits/utilities/escape-layer/escape-layer.svelte";
+	import FocusScope from "$lib/bits/utilities/focus-scope/focus-scope.svelte";
+	import PresenceLayer from "$lib/bits/utilities/presence-layer/presence-layer.svelte";
+	import TextSelectionLayer from "$lib/bits/utilities/text-selection-layer/text-selection-layer.svelte";
+	import { useId } from "$lib/internal/use-id.js";
+	import { noop } from "$lib/internal/noop.js";
+	import ScrollLock from "$lib/bits/utilities/scroll-lock/scroll-lock.svelte";
+	import { useDialogContent } from "$lib/bits/dialog/dialog.svelte.js";
+	import { shouldTrapFocus } from "$lib/internal/should-trap-focus.js";
 
-	type T = $$Generic<Transition>;
-	type In = $$Generic<Transition>;
-	type Out = $$Generic<Transition>;
+	let {
+		id = useId(),
+		children,
+		child,
+		ref = $bindable(null),
+		forceMount = false,
+		interactOutsideBehavior = "ignore",
+		onCloseAutoFocus = noop,
+		onEscapeKeydown = noop,
+		onOpenAutoFocus = noop,
+		onInteractOutside = noop,
+		preventScroll = true,
+		trapFocus = true,
+		restoreScrollDelay = null,
+		...restProps
+	}: AlertDialogContentProps = $props();
 
-	type $$Props = ContentProps<T, In, Out>;
+	const contentState = useDialogContent({
+		id: box.with(() => id),
+		ref: box.with(
+			() => ref,
+			(v) => (ref = v)
+		),
+	});
 
-	export let transition: $$Props["transition"] = undefined;
-	export let transitionConfig: $$Props["transitionConfig"] = undefined;
-	export let inTransition: $$Props["inTransition"] = undefined;
-	export let inTransitionConfig: $$Props["inTransitionConfig"] = undefined;
-	export let outTransition: $$Props["outTransition"] = undefined;
-	export let outTransitionConfig: $$Props["outTransitionConfig"] = undefined;
-	export let id: $$Props["id"] = undefined;
-	export let asChild: $$Props["asChild"] = false;
-	export let el: $$Props["el"] = undefined;
-
-	const {
-		elements: { content },
-		states: { open },
-		ids,
-		getAttrs,
-	} = getCtx();
-
-	const attrs = getAttrs("content");
-
-	$: if (id) {
-		ids.content.set(id);
-	}
-	$: builder = $content;
-	$: Object.assign(builder, attrs);
+	const mergedProps = $derived(mergeProps(restProps, contentState.props));
 </script>
 
-{#if asChild && $open}
-	<slot {builder} />
-{:else if transition && $open}
-	<div
-		bind:this={el}
-		transition:transition={transitionConfig}
-		use:melt={builder}
-		on:pointerdown
-		on:pointermove
-		on:pointerup
-		on:touchcancel
-		on:touchend
-		on:touchmove|nonpassive
-		on:touchstart|nonpassive
-		{...$$restProps}
-	>
-		<slot {builder} />
-	</div>
-{:else if inTransition && outTransition && $open}
-	<div
-		bind:this={el}
-		in:inTransition={inTransitionConfig}
-		out:outTransition={outTransitionConfig}
-		use:melt={builder}
-		on:pointerdown
-		on:pointermove
-		on:pointerup
-		on:touchcancel
-		on:touchend
-		on:touchmove|nonpassive
-		on:touchstart|nonpassive
-		{...$$restProps}
-	>
-		<slot {builder} />
-	</div>
-{:else if inTransition && $open}
-	<div
-		bind:this={el}
-		in:inTransition={inTransitionConfig}
-		use:melt={builder}
-		on:pointerdown
-		on:pointermove
-		on:pointerup
-		on:touchcancel
-		on:touchend
-		on:touchmove|nonpassive
-		on:touchstart|nonpassive
-		{...$$restProps}
-	>
-		<slot {builder} />
-	</div>
-{:else if outTransition && $open}
-	<div
-		bind:this={el}
-		out:outTransition={outTransitionConfig}
-		use:melt={builder}
-		on:pointerdown
-		on:pointermove
-		on:pointerup
-		on:touchcancel
-		on:touchend
-		on:touchmove|nonpassive
-		on:touchstart|nonpassive
-		{...$$restProps}
-	>
-		<slot {builder} />
-	</div>
-{:else if $open}
-	<div
-		bind:this={el}
-		use:melt={builder}
-		on:pointerdown
-		on:pointermove
-		on:pointerup
-		on:touchcancel
-		on:touchend
-		on:touchmove|nonpassive
-		on:touchstart|nonpassive
-		{...$$restProps}
-	>
-		<slot {builder} />
-	</div>
-{/if}
+<PresenceLayer {...mergedProps} {forceMount} present={contentState.root.open.current || forceMount}>
+	{#snippet presence({ present })}
+		<FocusScope
+			loop
+			trapFocus={shouldTrapFocus({
+				forceMount,
+				present: present.current,
+				trapFocus,
+				open: contentState.root.open.current,
+			})}
+			{...mergedProps}
+			onCloseAutoFocus={(e) => {
+				onCloseAutoFocus(e);
+				if (e.defaultPrevented) return;
+				contentState.root.triggerNode?.focus();
+			}}
+			onOpenAutoFocus={(e) => {
+				onOpenAutoFocus(e);
+				if (e.defaultPrevented) return;
+				e.preventDefault();
+				contentState.root.cancelNode?.focus();
+			}}
+		>
+			{#snippet focusScope({ props: focusScopeProps })}
+				<EscapeLayer
+					{...mergedProps}
+					enabled={present.current}
+					onEscapeKeydown={(e) => {
+						onEscapeKeydown(e);
+						if (e.defaultPrevented) return;
+						contentState.root.handleClose();
+					}}
+				>
+					<DismissibleLayer
+						{...mergedProps}
+						enabled={present.current}
+						{interactOutsideBehavior}
+						onInteractOutside={(e) => {
+							onInteractOutside(e);
+							if (e.defaultPrevented) return;
+							contentState.root.handleClose();
+						}}
+					>
+						<TextSelectionLayer {...mergedProps} enabled={present.current}>
+							{#if child}
+								{#if contentState.root.open.current}
+									<ScrollLock {preventScroll} {restoreScrollDelay} />
+								{/if}
+								{@render child({
+									props: mergeProps(mergedProps, focusScopeProps),
+									...contentState.snippetProps,
+								})}
+							{:else}
+								<ScrollLock {preventScroll} />
+								<div {...mergeProps(mergedProps, focusScopeProps)}>
+									{@render children?.()}
+								</div>
+							{/if}
+						</TextSelectionLayer>
+					</DismissibleLayer>
+				</EscapeLayer>
+			{/snippet}
+		</FocusScope>
+	{/snippet}
+</PresenceLayer>

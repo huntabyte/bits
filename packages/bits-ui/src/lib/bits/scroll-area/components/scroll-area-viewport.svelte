@@ -1,34 +1,51 @@
 <script lang="ts">
-	import { melt } from "@melt-ui/svelte";
-	import type { ViewportProps } from "../index.js";
-	import { getCtx } from "../ctx.js";
+	import { box, mergeProps } from "svelte-toolbelt";
+	import type { ScrollAreaViewportProps } from "../types.js";
+	import { useScrollAreaViewport } from "../scroll-area.svelte.js";
+	import { useId } from "$lib/internal/use-id.js";
 
-	type $$Props = ViewportProps;
+	let {
+		ref = $bindable(null),
+		id = useId(),
+		children,
+		...restProps
+	}: ScrollAreaViewportProps = $props();
 
-	export let asChild: $$Props["asChild"] = false;
-	export let el: $$Props["el"] = undefined;
+	const viewportState = useScrollAreaViewport({
+		id: box.with(() => id),
+		ref: box.with(
+			() => ref,
+			(v) => (ref = v)
+		),
+	});
 
-	const {
-		elements: { viewport },
-		getAttrs,
-	} = getCtx();
-
-	const bitsAttrs = getAttrs("viewport");
-
-	$: attrs = {
-		...$$restProps,
-		...bitsAttrs,
-	};
-
-	$: builder = $viewport;
-
-	$: Object.assign(builder, attrs);
+	const mergedProps = $derived(mergeProps(restProps, viewportState.props));
+	const mergedContentProps = $derived(mergeProps({}, viewportState.contentProps));
 </script>
 
-{#if asChild}
-	<slot {builder} />
-{:else}
-	<div use:melt={builder} bind:this={el}>
-		<slot {builder} />
+<div {...mergedProps}>
+	<div {...mergedContentProps}>
+		{@render children?.()}
 	</div>
-{/if}
+</div>
+
+<style>
+	/* Hide scrollbars cross browser and enable momentum scroll for touch devices */
+	:global([data-scroll-area-viewport]) {
+		scrollbar-width: none !important;
+		-ms-overflow-style: none !important;
+		-webkit-overflow-scrolling: touch !important;
+	}
+	:global([data-scroll-area-viewport])::-webkit-scrollbar {
+		display: none !important;
+	}
+
+	:global(:where([data-scroll-area-viewport])) {
+		display: flex;
+		flex-direction: column;
+		align-items: stretch;
+	}
+	:global(:where([data-scroll-area-content])) {
+		flex-grow: 1;
+	}
+</style>

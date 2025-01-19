@@ -1,44 +1,39 @@
 <script lang="ts">
-	import { melt } from "@melt-ui/svelte";
-	import { getCtx } from "../ctx.js";
-	import type { InputEvents, InputProps } from "../index.js";
-	import { createDispatcher } from "$lib/internal/events.js";
+	import { box, mergeProps } from "svelte-toolbelt";
+	import type { ComboboxInputProps } from "../types.js";
+	import { useId } from "$lib/internal/use-id.js";
+	import { FloatingLayer } from "$lib/bits/utilities/floating-layer/index.js";
+	import { useSelectInput } from "$lib/bits/select/select.svelte.js";
 
-	type $$Props = InputProps;
-	type $$Events = InputEvents;
+	let {
+		id = useId(),
+		ref = $bindable(null),
+		child,
+		defaultValue,
+		...restProps
+	}: ComboboxInputProps = $props();
 
-	export let asChild: $$Props["asChild"] = false;
-	export let placeholder: $$Props["placeholder"] = undefined;
-	export let el: $$Props["el"] = undefined;
-	export let id: $$Props["id"] = undefined;
+	const inputState = useSelectInput({
+		id: box.with(() => id),
+		ref: box.with(
+			() => ref,
+			(v) => (ref = v)
+		),
+	});
 
-	const {
-		elements: { input },
-		ids,
-		getAttrs,
-	} = getCtx();
-
-	const dispatch = createDispatcher();
-	const attrs = getAttrs("input");
-
-	$: if (id) {
-		ids.trigger.set(id);
+	if (defaultValue) {
+		inputState.root.inputValue = defaultValue;
 	}
 
-	$: builder = $input;
-	$: Object.assign(builder, attrs);
+	const mergedProps = $derived(
+		mergeProps(restProps, inputState.props, { value: inputState.root.inputValue })
+	);
 </script>
 
-{#if asChild}
-	<slot {builder} {placeholder} />
-{:else}
-	<input
-		bind:this={el}
-		use:melt={builder}
-		{...$$restProps}
-		{placeholder}
-		on:m-click={dispatch}
-		on:m-keydown={dispatch}
-		on:m-input={dispatch}
-	/>
-{/if}
+<FloatingLayer.Anchor {id}>
+	{#if child}
+		{@render child({ props: mergedProps })}
+	{:else}
+		<input {...mergedProps} />
+	{/if}
+</FloatingLayer.Anchor>

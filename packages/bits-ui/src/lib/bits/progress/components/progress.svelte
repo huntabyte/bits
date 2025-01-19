@@ -1,44 +1,36 @@
 <script lang="ts">
-	import { melt } from "@melt-ui/svelte";
-	import { setCtx } from "../ctx.js";
-	import type { Props } from "../index.js";
+	import { box, mergeProps } from "svelte-toolbelt";
+	import type { ProgressRootProps } from "../types.js";
+	import { useProgressRootState } from "../progress.svelte.js";
+	import { useId } from "$lib/internal/use-id.js";
 
-	type $$Props = Props;
+	let {
+		child,
+		children,
+		value = 0,
+		max = 100,
+		id = useId(),
+		ref = $bindable(null),
+		...restProps
+	}: ProgressRootProps = $props();
 
-	export let max: $$Props["max"] = undefined;
-	export let value: $$Props["value"] = undefined;
-	export let onValueChange: $$Props["onValueChange"] = undefined;
-	export let asChild: $$Props["asChild"] = false;
-	export let el: $$Props["el"] = undefined;
-
-	const {
-		elements: { root },
-		states: { value: localValue },
-		updateOption,
-		getAttrs,
-	} = setCtx({
-		max,
-		defaultValue: value,
-		onValueChange: ({ next }) => {
-			onValueChange?.(next);
-			value = next;
-			return next;
-		},
+	const rootState = useProgressRootState({
+		value: box.with(() => value),
+		max: box.with(() => max),
+		id: box.with(() => id),
+		ref: box.with(
+			() => ref,
+			(v) => (ref = v)
+		),
 	});
 
-	const attrs = getAttrs("root");
-
-	$: value !== undefined && localValue.set(value);
-	$: updateOption("max", max);
-
-	$: builder = $root;
-	$: Object.assign(builder, attrs);
+	const mergedProps = $derived(mergeProps(restProps, rootState.props));
 </script>
 
-{#if asChild}
-	<slot {builder} />
+{#if child}
+	{@render child({ props: mergedProps })}
 {:else}
-	<div bind:this={el} use:melt={builder} {...$$restProps}>
-		<slot {builder} />
+	<div {...mergedProps}>
+		{@render children?.()}
 	</div>
 {/if}

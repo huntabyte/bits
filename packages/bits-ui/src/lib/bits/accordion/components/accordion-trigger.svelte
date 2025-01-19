@@ -1,40 +1,34 @@
 <script lang="ts">
-	import { melt } from "@melt-ui/svelte";
-	import { getTrigger } from "../ctx.js";
-	import type { TriggerEvents, TriggerProps } from "../index.js";
-	import { createDispatcher } from "$lib/internal/events.js";
+	import { box, mergeProps } from "svelte-toolbelt";
+	import type { AccordionTriggerProps } from "../types.js";
+	import { useAccordionTrigger } from "../accordion.svelte.js";
+	import { useId } from "$lib/internal/use-id.js";
 
-	type $$Props = TriggerProps;
-	type $$Events = TriggerEvents;
+	let {
+		disabled = false,
+		ref = $bindable(null),
+		id = useId(),
+		children,
+		child,
+		...restProps
+	}: AccordionTriggerProps = $props();
 
-	export let asChild: $$Props["asChild"] = false;
-	export let el: $$Props["el"] = undefined;
-
-	const {
-		elements: { trigger },
-		props,
-		getAttrs,
-	} = getTrigger();
-	const dispatch = createDispatcher();
-	const attrs = getAttrs("trigger");
-
-	$: builder = $trigger({
-		...$props,
+	const triggerState = useAccordionTrigger({
+		disabled: box.with(() => disabled),
+		id: box.with(() => id),
+		ref: box.with(
+			() => ref,
+			(v) => (ref = v)
+		),
 	});
-	$: Object.assign(builder, attrs);
+
+	const mergedProps = $derived(mergeProps(restProps, triggerState.props));
 </script>
 
-{#if asChild}
-	<slot {builder} />
+{#if child}
+	{@render child({ props: mergedProps })}
 {:else}
-	<button
-		bind:this={el}
-		use:melt={builder}
-		type="button"
-		{...$$restProps}
-		on:m-keydown={dispatch}
-		on:m-click={dispatch}
-	>
-		<slot {builder} />
+	<button type="button" {...mergedProps}>
+		{@render children?.()}
 	</button>
 {/if}

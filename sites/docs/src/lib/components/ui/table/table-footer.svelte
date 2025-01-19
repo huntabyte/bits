@@ -2,12 +2,13 @@
 	import type { HTMLAttributes } from "svelte/elements";
 	import { cn } from "$lib/utils/index.js";
 
-	type $$Props = HTMLAttributes<HTMLTableSectionElement>;
-
-	let className: $$Props["class"] = undefined;
-	export { className as class };
+	let {
+		class: className,
+		children,
+		...restProps
+	}: HTMLAttributes<HTMLTableSectionElement> = $props();
 </script>
 
-<tfoot class={cn("bg-primary text-primary-foreground font-medium", className)} {...$$restProps}>
-	<slot />
+<tfoot class={cn("bg-primary text-primary-foreground font-medium", className)} {...restProps}>
+	{@render children?.()}
 </tfoot>

@@ -1,0 +1,3 @@
+```ts
+"single" | "multiple";
+```

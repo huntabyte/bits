@@ -1,26 +1,36 @@
 <script lang="ts">
-	import type { Props } from "../index.js";
+	import { box, mergeProps } from "svelte-toolbelt";
+	import type { AspectRatioRootProps } from "../types.js";
+	import { useAspectRatioRoot } from "../aspect-ratio.svelte.js";
+	import { useId } from "$lib/internal/use-id.js";
 
-	type $$Props = Props;
-	export let ratio: $$Props["ratio"] = 1 / 1;
-	export let el: $$Props["el"] = undefined;
+	let {
+		ref = $bindable(null),
+		id = useId(),
+		ratio = 1,
+		children,
+		child,
+		...restProps
+	}: AspectRatioRootProps = $props();
 
-	const attrs = {
-		"data-aspect-ratio-root": "",
-	};
+	const rootState = useAspectRatioRoot({
+		id: box.with(() => id),
+		ref: box.with(
+			() => ref,
+			(v) => (ref = v)
+		),
+		ratio: box.with(() => ratio),
+	});
+
+	const mergedProps = $derived(mergeProps(restProps, rootState.props));
 </script>
 
 <div style:position="relative" style:width="100%" style:padding-bottom="{ratio ? 100 / ratio : 0}%">
-	<div
-		bind:this={el}
-		style:position="absolute"
-		style:top="0"
-		style:right="0"
-		style:bottom="0"
-		style:left="0"
-		{...$$restProps}
-		{...attrs}
-	>
-		<slot />
-	</div>
+	{#if child}
+		{@render child({ props: mergedProps })}
+	{:else}
+		<div {...mergedProps}>
+			{@render children?.()}
+		</div>
+	{/if}
 </div>

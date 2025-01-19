@@ -1,66 +1,43 @@
 <script lang="ts">
-	import { melt } from "@melt-ui/svelte";
-	import type { ContentProps } from "../index.js";
-	import { getCtx } from "../ctx.js";
-	import type { Transition } from "$lib/internal/types.js";
+	import { box, mergeProps } from "svelte-toolbelt";
+	import { useCollapsibleContent } from "../collapsible.svelte.js";
+	import type { CollapsibleContentProps } from "../types.js";
+	import { PresenceLayer } from "$lib/bits/utilities/presence-layer/index.js";
+	import { useId } from "$lib/internal/use-id.js";
 
-	type T = $$Generic<Transition>;
-	type In = $$Generic<Transition>;
-	type Out = $$Generic<Transition>;
-	type $$Props = ContentProps<T, In, Out>;
+	let {
+		child,
+		ref = $bindable(null),
+		forceMount = false,
+		children,
+		id = useId(),
+		...restProps
+	}: CollapsibleContentProps & { forceMount?: boolean } = $props();
 
-	export let transition: $$Props["transition"] = undefined;
-	export let transitionConfig: $$Props["transitionConfig"] = undefined;
-	export let inTransition: $$Props["inTransition"] = undefined;
-	export let inTransitionConfig: $$Props["inTransitionConfig"] = undefined;
-	export let outTransition: $$Props["outTransition"] = undefined;
-	export let outTransitionConfig: $$Props["outTransitionConfig"] = undefined;
-	export let asChild: $$Props["asChild"] = false;
-	export let el: $$Props["el"] = undefined;
-
-	const {
-		elements: { content },
-		states: { open },
-		getAttrs,
-	} = getCtx();
-
-	const attrs = getAttrs("content");
-
-	$: builder = $content;
-	$: Object.assign(builder, attrs);
+	const contentState = useCollapsibleContent({
+		id: box.with(() => id),
+		forceMount: box.with(() => forceMount),
+		ref: box.with(
+			() => ref,
+			(v) => (ref = v)
+		),
+	});
 </script>
 
-{#if asChild && $open}
-	<slot {builder} />
-{:else if transition && $open}
-	<div
-		bind:this={el}
-		transition:transition={transitionConfig}
-		use:melt={builder}
-		{...$$restProps}
-	>
-		<slot {builder} />
-	</div>
-{:else if inTransition && outTransition && $open}
-	<div
-		bind:this={el}
-		in:inTransition={inTransitionConfig}
-		out:outTransition={outTransitionConfig}
-		use:melt={builder}
-		{...$$restProps}
-	>
-		<slot {builder} />
-	</div>
-{:else if inTransition && $open}
-	<div bind:this={el} in:inTransition={inTransitionConfig} use:melt={builder} {...$$restProps}>
-		<slot {builder} />
-	</div>
-{:else if outTransition && $open}
-	<div bind:this={el} out:outTransition={outTransitionConfig} use:melt={builder} {...$$restProps}>
-		<slot {builder} />
-	</div>
-{:else if $open}
-	<div bind:this={el} use:melt={builder} {...$$restProps}>
-		<slot {builder} />
-	</div>
-{/if}
+<PresenceLayer forceMount={true} present={contentState.present} {id}>
+	{#snippet presence({ present })}
+		{@const mergedProps = mergeProps(restProps, contentState.props, {
+			hidden: forceMount ? undefined : !present.current,
+		})}
+		{#if child}
+			{@render child({
+				...contentState.snippetProps,
+				props: mergedProps,
+			})}
+		{:else}
+			<div {...mergedProps}>
+				{@render children?.()}
+			</div>
+		{/if}
+	{/snippet}
+</PresenceLayer>

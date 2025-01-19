@@ -1,39 +1,39 @@
 <script lang="ts">
-	import { melt } from "@melt-ui/svelte";
-	import { getCtx } from "../ctx.js";
-	import type { DayEvents, DayProps } from "../index.js";
-	import { createDispatcher } from "$lib/internal/events.js";
+	import { box, mergeProps } from "svelte-toolbelt";
+	import { useCalendarDay } from "../calendar.svelte.js";
+	import type { CalendarDayProps } from "../types.js";
+	import { useId } from "$lib/internal/use-id.js";
 
-	type $$Props = DayProps;
-	type $$Events = DayEvents;
+	let {
+		children,
+		child,
+		ref = $bindable(null),
+		id = useId(),
+		...restProps
+	}: CalendarDayProps = $props();
 
-	export let date: $$Props["date"];
-	export let month: $$Props["month"];
-	export let asChild: $$Props["asChild"] = false;
-	export let el: $$Props["el"] = undefined;
+	const dayState = useCalendarDay({
+		id: box.with(() => id),
+		ref: box.with(
+			() => ref,
+			(v) => (ref = v)
+		),
+	});
 
-	const {
-		elements: { cell },
-		helpers: { isDateDisabled, isDateUnavailable, isDateSelected },
-		getCalendarAttrs,
-	} = getCtx();
-
-	const attrs = getCalendarAttrs("day");
-	const dispatch = createDispatcher();
-
-	$: builder = $cell(date, month);
-	$: Object.assign(builder, attrs);
-	$: disabled = $isDateDisabled(date);
-	$: unavailable = $isDateUnavailable(date);
-	$: selected = $isDateSelected(date);
+	const mergedProps = $derived(mergeProps(restProps, dayState.props));
 </script>
 
-{#if asChild}
-	<slot {builder} {disabled} {unavailable} {selected} />
+{#if child}
+	{@render child({
+		props: mergedProps,
+		...dayState.snippetProps,
+	})}
 {:else}
-	<div bind:this={el} use:melt={builder} {...$$restProps} on:m-click={dispatch}>
-		<slot {builder} {disabled} {unavailable} {selected}>
-			{date.day}
-		</slot>
+	<div {...mergedProps}>
+		{#if children}
+			{@render children?.(dayState.snippetProps)}
+		{:else}
+			{dayState.cell.date.current.day}
+		{/if}
 	</div>
 {/if}

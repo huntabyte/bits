@@ -1,6 +1,6 @@
 {
 	"name": "bits-ui",
-	"version": "0.22.0",
+	"version": "1.0.0-next.78",
 	"license": "MIT",
 	"repository": "github:huntabyte/bits-ui",
 	"funding": "https://github.com/sponsors/huntabyte",
@@ -13,7 +13,7 @@
 		"package": "svelte-kit sync && svelte-package && publint",
 		"check": "svelte-check --tsconfig ./tsconfig.json",
 		"test": "vitest",
-		"watch": "svelte-kit sync && svelte-package --watch"
+		"watch": "svelte-package --watch"
 	},
 	"exports": {
 		".": {
@@ -27,37 +27,40 @@
 		"!dist/**/*.spec.*"
 	],
 	"devDependencies": {
-		"@melt-ui/pp": "^0.3.0",
-		"@sveltejs/kit": "^2.5.0",
-		"@sveltejs/package": "^2.2.7",
-		"@sveltejs/vite-plugin-svelte": "^3.0.2",
-		"@testing-library/dom": "^9.3.4",
-		"@testing-library/jest-dom": "^6.4.1",
-		"@testing-library/svelte": "^4.1.0",
-		"@testing-library/user-event": "^14.5.2",
-		"@types/jest-axe": "^3.5.9",
-		"@types/testing-library__jest-dom": "^5.14.9",
-		"autoprefixer": "^10.4.17",
-		"jest-axe": "^8.0.0",
-		"jsdom": "^24.0.0",
-		"publint": "^0.2.7",
-		"resize-observer-polyfill": "^1.5.1",
-		"svelte": "^4.2.9",
-		"svelte-check": "^3.6.3",
-		"tslib": "^2.6.2",
-		"typescript": "^5.3.3",
-		"vite": "^5.0.12",
-		"vitest": "^1.2.2"
+		"@sveltejs/kit": "^2.8.1",
+		"@sveltejs/package": "^2.3.7",
+		"@sveltejs/vite-plugin-svelte": "4.0.0",
+		"@types/node": "^20.17.6",
+		"@types/resize-observer-browser": "^0.1.11",
+		"csstype": "^3.1.3",
+		"jest-axe": "^9.0.0",
+		"jsdom": "^24.1.3",
+		"publint": "^0.2.12",
+		"svelte": "^5.16.0",
+		"svelte-check": "^4.0.7",
+		"tslib": "^2.8.1",
+		"typescript": "^5.6.3",
+		"vite": "^5.4.11",
+		"vitest": "^2.1.8"
 	},
 	"svelte": "./dist/index.js",
 	"types": "./dist/index.d.ts",
 	"type": "module",
 	"dependencies": {
-		"@internationalized/date": "^3.5.1",
-		"@melt-ui/svelte": "0.76.2",
-		"nanoid": "^5.0.5"
+		"@floating-ui/core": "^1.6.4",
+		"@floating-ui/dom": "^1.6.7",
+		"@internationalized/date": "^3.5.6",
+		"esm-env": "^1.1.2",
+		"runed": "^0.22.0",
+		"svelte-toolbelt": "^0.7.0"
 	},
 	"peerDependencies": {
-		"svelte": "^4.0.0 || ^5.0.0"
-	}
+		"svelte": "^5.11.0"
+	},
+	"engines": {
+		"pnpm": ">=8.7.0",
+		"node": ">=18"
+	},
+	"sideEffects": false,
+	"packageManager": "pnpm@9.6.0"
 }

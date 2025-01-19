@@ -1,49 +1,50 @@
 <script lang="ts">
-	import { melt } from "@melt-ui/svelte";
-	import { setItemCtx } from "../ctx.js";
-	import type { ItemEvents, ItemProps } from "../index.js";
-	import { createDispatcher } from "$lib/internal/events.js";
+	import { box, mergeProps } from "svelte-toolbelt";
+	import { useSelectItem } from "../select.svelte.js";
+	import type { SelectItemProps } from "../types.js";
+	import { useId } from "$lib/internal/use-id.js";
+	import { noop } from "$lib/internal/noop.js";
+	import Mounted from "$lib/bits/utilities/mounted.svelte";
 
-	type $$Props = ItemProps;
-	type $$Events = ItemEvents;
+	let {
+		id = useId(),
+		ref = $bindable(null),
+		value,
+		label = value,
+		disabled = false,
+		children,
+		child,
+		onHighlight = noop,
+		onUnhighlight = noop,
+		...restProps
+	}: SelectItemProps = $props();
 
-	export let value: $$Props["value"];
-	export let disabled: $$Props["disabled"] = undefined;
-	export let label: $$Props["label"] = undefined;
-	export let asChild: $$Props["asChild"] = false;
-	export let el: $$Props["el"] = undefined;
+	const itemState = useSelectItem({
+		id: box.with(() => id),
+		ref: box.with(
+			() => ref,
+			(v) => (ref = v)
+		),
+		value: box.with(() => value),
+		disabled: box.with(() => disabled),
+		label: box.with(() => label),
+		onHighlight: box.with(() => onHighlight),
+		onUnhighlight: box.with(() => onUnhighlight),
+	});
 
-	const {
-		elements: { option: item },
-		helpers: { isSelected: isSelectedStore },
-		getAttrs,
-	} = setItemCtx(value);
-
-	const dispatch = createDispatcher();
-	const attrs = getAttrs("item");
-
-	$: builder = $item({ value, disabled, label });
-	$: Object.assign(builder, attrs);
-	$: isSelected = $isSelectedStore(value);
+	const mergedProps = $derived(mergeProps(restProps, itemState.props));
 </script>
 
-<!-- svelte-ignore a11y-no-static-element-interactions a11y_no_static_element_interactions -->
-{#if asChild}
-	<slot {builder} {isSelected} />
+{#if child}
+	{@render child({ props: mergedProps, ...itemState.snippetProps })}
 {:else}
-	<div
-		bind:this={el}
-		use:melt={builder}
-		{...$$restProps}
-		on:m-click={dispatch}
-		on:m-pointermove={dispatch}
-		on:focusin
-		on:keydown
-		on:focusout
-		on:pointerleave
-	>
-		<slot {builder} {isSelected}>
-			{label || value}
-		</slot>
+	<div {...mergedProps}>
+		{@render children?.(itemState.snippetProps)}
 	</div>
 {/if}
+
+<Mounted
+	onMountedChange={(m) => {
+		itemState.mounted = m;
+	}}
+/>

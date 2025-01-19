@@ -1,68 +1,37 @@
 <script lang="ts">
-	import { derived } from "svelte/store";
-	import type { Props } from "../index.js";
-	import { setCtx } from "../ctx.js";
-	type $$Props = Props;
+	import { box } from "svelte-toolbelt";
+	import type { ContextMenuRootProps } from "../types.js";
+	import FloatingLayer from "$lib/bits/utilities/floating-layer/components/floating-layer.svelte";
+	import { noop } from "$lib/internal/noop.js";
+	import { useMenuMenu, useMenuRoot } from "$lib/bits/menu/menu.svelte.js";
 
-	export let closeOnOutsideClick: $$Props["closeOnOutsideClick"] = undefined;
-	export let closeOnEscape: $$Props["closeOnEscape"] = undefined;
-	export let portal: $$Props["portal"] = undefined;
-	export let open: $$Props["open"] = undefined;
-	export let onOpenChange: $$Props["onOpenChange"] = undefined;
-	export let preventScroll: $$Props["preventScroll"] = undefined;
-	export let loop: $$Props["loop"] = undefined;
-	export let dir: $$Props["dir"] = undefined;
-	export let typeahead: $$Props["typeahead"] = undefined;
-	export let closeFocus: $$Props["closeFocus"] = undefined;
-	export let disableFocusFirstItem: $$Props["disableFocusFirstItem"] = undefined;
-	export let onOutsideClick: $$Props["onOutsideClick"] = undefined;
-	export let closeOnItemClick: $$Props["closeOnItemClick"] = undefined;
+	let {
+		open = $bindable(false),
+		dir = "ltr",
+		onOpenChange = noop,
+		children,
+	}: ContextMenuRootProps = $props();
 
-	const {
-		states: { open: localOpen },
-		updateOption,
-		ids,
-	} = setCtx({
-		closeOnOutsideClick,
-		closeOnEscape,
-		portal,
-		forceVisible: true,
-		defaultOpen: open,
-		preventScroll,
-		loop,
-		dir,
-		typeahead,
-		disableFocusFirstItem,
-		closeFocus,
-		onOutsideClick,
-		closeOnItemClick,
-		onOpenChange: ({ next }) => {
-			if (open !== next) {
-				onOpenChange?.(next);
-				open = next;
-			}
-			return next;
+	const root = useMenuRoot({
+		variant: box.with(() => "context-menu"),
+		dir: box.with(() => dir),
+		onClose: () => {
+			open = false;
+			onOpenChange?.(false);
 		},
 	});
 
-	const idValues = derived([ids.menu, ids.trigger], ([$menuId, $triggerId]) => ({
-		menu: $menuId,
-		trigger: $triggerId,
-	}));
-
-	$: open !== undefined && localOpen.set(open);
-
-	$: updateOption("closeOnItemClick", closeOnItemClick);
-	$: updateOption("closeOnOutsideClick", closeOnOutsideClick);
-	$: updateOption("closeOnEscape", closeOnEscape);
-	$: updateOption("portal", portal);
-	$: updateOption("preventScroll", preventScroll);
-	$: updateOption("loop", loop);
-	$: updateOption("dir", dir);
-	$: updateOption("closeFocus", closeFocus);
-	$: updateOption("disableFocusFirstItem", disableFocusFirstItem);
-	$: updateOption("typeahead", typeahead);
-	$: updateOption("onOutsideClick", onOutsideClick);
+	useMenuMenu(root, {
+		open: box.with(
+			() => open,
+			(v) => {
+				open = v;
+				onOpenChange(v);
+			}
+		),
+	});
 </script>
 
-<slot ids={$idValues} />
+<FloatingLayer>
+	{@render children?.()}
+</FloatingLayer>

@@ -1,38 +1,40 @@
-import { accordion } from "./accordion.js";
-import { alertDialog } from "./alert-dialog.js";
-import { aspectRatio } from "./aspect-ratio.js";
-import { avatar } from "./avatar.js";
-import { button } from "./button.js";
-import { calendar } from "./calendar.js";
-import { checkbox } from "./checkbox.js";
-import { collapsible } from "./collapsible.js";
-import { combobox } from "./combobox.js";
-import { contextMenu } from "./context-menu.js";
-import { dateField } from "./date-field.js";
-import { datePicker } from "./date-picker.js";
-import { dateRangeField } from "./date-range-field.js";
-import { dateRangePicker } from "./date-range-picker.js";
-import { dialog } from "./dialog.js";
-import { dropdownMenu } from "./dropdown-menu.js";
-import { label } from "./label.js";
-import { linkPreview } from "./link-preview.js";
-import { menubar } from "./menubar.js";
-import { pagination } from "./pagination.js";
-import { pinInput } from "./pin-input.js";
-import { popover } from "./popover.js";
-import { progress } from "./progress.js";
-import { radioGroup } from "./radio-group.js";
-import { rangeCalendar } from "./range-calendar.js";
-import { scrollArea } from "./scroll-area.js";
-import { select } from "./select.js";
-import { separator } from "./separator.js";
-import { slider } from "./slider.js";
-import { switchData } from "./switch.js";
-import { tabs } from "./tabs.js";
-import { toggleGroup } from "./toggle-group.js";
-import { toggle } from "./toggle.js";
-import { toolbar } from "./toolbar.js";
-import { tooltip } from "./tooltip.js";
+import { accordion } from "./accordion.api.js";
+import { alertDialog } from "./alert-dialog.api.js";
+import { aspectRatio } from "./aspect-ratio.api.js";
+import { avatar } from "./avatar.api.js";
+import { button } from "./button.api.js";
+import { calendar } from "./calendar.api.js";
+import { checkbox } from "./checkbox.api.js";
+import { collapsible } from "./collapsible.api.js";
+import { combobox } from "./combobox.api.js";
+import { command } from "./command.api.js";
+import { contextMenu } from "./context-menu.api.js";
+import { dateField } from "./date-field.api.js";
+import { datePicker } from "./date-picker.api.js";
+import { dateRangeField } from "./date-range-field.api.js";
+import { dateRangePicker } from "./date-range-picker.api.js";
+import { dialog } from "./dialog.api.js";
+import { dropdownMenu } from "./dropdown-menu.api.js";
+import { label } from "./label.api.js";
+import { linkPreview } from "./link-preview.api.js";
+import { navigationMenu } from "./navigation-menu.api.js";
+import { pagination } from "./pagination.api.js";
+import { pinInput } from "./pin-input.api.js";
+import { popover } from "./popover.api.js";
+import { progress } from "./progress.api.js";
+import { radioGroup } from "./radio-group.api.js";
+import { rangeCalendar } from "./range-calendar.api.js";
+import { scrollArea } from "./scroll-area.api.js";
+import { select } from "./select.api.js";
+import { separator } from "./separator.api.js";
+import { slider } from "./slider.api.js";
+import { switchData } from "./switch.api.js";
+import { tabs } from "./tabs.api.js";
+import { toggleGroup } from "./toggle-group.api.js";
+import { toggle } from "./toggle.api.js";
+import { toolbar } from "./toolbar.api.js";
+import { tooltip } from "./tooltip.api.js";
+import { menubar } from "./menubar.api.js";
 import type { APISchema } from "$lib/types/index.js";
 
 export const bits = [
@@ -45,6 +47,7 @@ export const bits = [
 	"checkbox",
 	"collapsible",
 	"combobox",
+	"command",
 	"context-menu",
 	"date-field",
 	"date-picker",
@@ -55,6 +58,7 @@ export const bits = [
 	"label",
 	"link-preview",
 	"menubar",
+	"navigation-menu",
 	"pagination",
 	"pin-input",
 	"popover",
@@ -91,6 +95,7 @@ export const apiSchemas: Record<Bit, APISchema[]> = {
 	checkbox,
 	collapsible,
 	combobox,
+	command,
 	"context-menu": contextMenu,
 	"date-field": dateField,
 	"date-picker": datePicker,
@@ -101,6 +106,7 @@ export const apiSchemas: Record<Bit, APISchema[]> = {
 	label,
 	"link-preview": linkPreview,
 	menubar,
+	"navigation-menu": navigationMenu,
 	pagination,
 	"pin-input": pinInput,
 	popover,

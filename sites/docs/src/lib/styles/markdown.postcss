@@ -1,5 +1,17 @@
 .markdown code:not(pre > code):not(.custom) {
-	@apply relative rounded bg-muted px-[0.4rem] py-[0.2rem] font-mono text-sm font-medium text-foreground;
+	@apply relative rounded bg-muted px-[0.375rem] py-[0.125rem] font-mono text-sm font-semibold text-foreground;
+}
+
+.markdown h1 code,
+.markdown h2 code,
+.markdown h3 code,
+.markdown h4 code,
+.markdown h5 code,
+.markdown h6 code {
+	/* Reset the styles */
+	all: unset !important;
+	/* Or specify exactly how you want it to look */
+	@apply font-mono before:content-['`'] after:content-['`'] !important;
 }
 
 [data-theme*=" "] {
@@ -25,7 +37,11 @@
 	@apply relative;
 
 	& pre {
-		@apply mb-4 mt-6 w-full overflow-x-auto rounded-card px-2.5 py-5 text-sm font-semibold;
+		@apply mb-4 mt-6 w-full overflow-x-auto rounded-card py-5 text-sm font-semibold;
+	}
+
+	& pre[data-metadata] {
+		@apply mt-0 rounded-tl-none rounded-tr-none;
 	}
 
 	& code {
@@ -35,11 +51,19 @@
 	}
 
 	& [data-line] {
-		@apply inline-block w-full basis-4 border-l-[3px] border-l-transparent py-0.5 pl-2 pr-5;
+		@apply inline-block w-full basis-4 border-l-[3px] border-l-transparent py-0.5 pl-2.5 pr-5;
 	}
 
 	& [data-chars-id] {
 		@apply pb-0.5 shadow-none;
+	}
+
+	& [data-highlighted-chars] {
+		@apply rounded-md bg-muted px-1 pb-0.5 font-bold;
+	}
+
+	& [data-highlighted-line] {
+		@apply !bg-muted;
 	}
 }
 
@@ -58,7 +82,7 @@
 }
 
 [data-chars-id="hi"] {
-	@apply rounded bg-accent/[0.1] p-1 font-bold !important;
+	@apply rounded p-1 font-bold !important;
 }
 
 [data-chars-id="r"] {
@@ -74,7 +98,7 @@
 }
 
 [data-rehype-pretty-code-title] {
-	@apply mt-4 rounded-t-xl bg-muted px-4 py-4 text-sm font-medium text-foreground/70;
+	@apply mt-4 rounded-t-xl bg-muted px-4 py-2.5 text-sm tracking-wide text-foreground/70;
 }
 
 [data-rehype-pretty-code-title] + pre {

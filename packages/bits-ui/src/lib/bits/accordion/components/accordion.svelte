@@ -1,62 +1,53 @@
 <script lang="ts">
-	import { melt } from "@melt-ui/svelte";
-	import type { Props } from "../index.js";
-	import { setCtx } from "../ctx.js";
-	import { arraysAreEqual } from "$lib/internal/arrays.js";
+	import { type WritableBox, box, mergeProps } from "svelte-toolbelt";
+	import { useAccordionRoot } from "../accordion.svelte.js";
+	import type { AccordionRootProps } from "../types.js";
+	import { useId } from "$lib/internal/use-id.js";
+	import { noop } from "$lib/internal/noop.js";
 
-	type Multiple = $$Generic<boolean>;
-	type $$Props = Props<Multiple>;
+	let {
+		disabled = false,
+		children,
+		child,
+		type,
+		value = $bindable(),
+		ref = $bindable(null),
+		id = useId(),
+		onValueChange = noop,
+		loop = true,
+		orientation = "vertical",
+		...restProps
+	}: AccordionRootProps = $props();
 
-	export let multiple: $$Props["multiple"] = false as Multiple;
-	export let value: $$Props["value"] = undefined;
-	export let onValueChange: $$Props["onValueChange"] = undefined;
-	export let disabled: $$Props["disabled"] = false;
-	export let asChild: $$Props["asChild"] = false;
-	export let el: $$Props["el"] = undefined;
+	value === undefined && (value = type === "single" ? "" : []);
 
-	const {
-		elements: { root },
-		states: { value: localValue },
-		updateOption,
-		getAttrs,
-	} = setCtx({
-		multiple,
-		disabled,
-		defaultValue: value,
-		onValueChange: ({ next }: { next: $$Props["value"] }) => {
-			if (Array.isArray(next)) {
-				if (!Array.isArray(value) || !arraysAreEqual(value, next)) {
-					onValueChange?.(next);
-					value = next;
-					return next;
-				}
-				return next;
+	const rootState = useAccordionRoot({
+		type,
+		value: box.with(
+			() => value!,
+			(v) => {
+				value = v;
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				onValueChange(v as any);
 			}
-
-			if (value !== next) {
-				onValueChange?.(next);
-				value = next;
-			}
-			return next;
-		},
+		) as WritableBox<string> | WritableBox<string[]>,
+		id: box.with(() => id),
+		disabled: box.with(() => disabled),
+		loop: box.with(() => loop),
+		orientation: box.with(() => orientation),
+		ref: box.with(
+			() => ref,
+			(v) => (ref = v)
+		),
 	});
 
-	const attrs = getAttrs("root");
-
-	// Svelte types get weird here saying set expects something that is both string and string[].
-	$: value !== undefined && localValue.set(Array.isArray(value) ? [...value] : (value as any));
-
-	$: updateOption("multiple", multiple);
-	$: updateOption("disabled", disabled);
-
-	$: builder = $root;
-	$: Object.assign(builder, attrs);
+	const mergedProps = $derived(mergeProps(restProps, rootState.props));
 </script>
 
-{#if asChild}
-	<slot {builder} />
+{#if child}
+	{@render child({ props: mergedProps })}
 {:else}
-	<div bind:this={el} use:melt={builder} {...$$restProps}>
-		<slot {builder} />
+	<div {...mergedProps}>
+		{@render children?.()}
 	</div>
 {/if}

@@ -1,41 +1,42 @@
 <script lang="ts">
-	import { melt } from "@melt-ui/svelte";
-	import { setRadioGroupCtx } from "../ctx.js";
-	import type { RadioGroupProps } from "../index.js";
+	import { box, mergeProps } from "svelte-toolbelt";
+	import type { MenuRadioGroupProps } from "../types.js";
+	import { useMenuRadioGroup } from "../menu.svelte.js";
+	import { noop } from "$lib/internal/noop.js";
+	import { useId } from "$lib/internal/use-id.js";
 
-	type $$Props = RadioGroupProps;
+	let {
+		id = useId(),
+		children,
+		child,
+		ref = $bindable(null),
+		value = $bindable(""),
+		onValueChange = noop,
+		...restProps
+	}: MenuRadioGroupProps = $props();
 
-	export let value: $$Props["value"] = undefined;
-	export let onValueChange: $$Props["onValueChange"] = undefined;
-	export let asChild: $$Props["asChild"] = false;
-	export let el: $$Props["el"] = undefined;
-
-	const {
-		elements: { radioGroup },
-		states: { value: localValue },
-		getAttrs,
-	} = setRadioGroupCtx({
-		defaultValue: value,
-		onValueChange: ({ next }) => {
-			if (next != null && next !== value) {
-				onValueChange?.(next);
-				value = next;
+	const radioGroupState = useMenuRadioGroup({
+		value: box.with(
+			() => value,
+			(v) => {
+				value = v;
+				onValueChange(v);
 			}
-			return next;
-		},
+		),
+		ref: box.with(
+			() => ref,
+			(v) => (ref = v)
+		),
+		id: box.with(() => id),
 	});
 
-	const attrs = getAttrs("radio-group");
-
-	$: value !== undefined && localValue.set(value);
-	$: builder = $radioGroup;
-	$: Object.assign(builder, attrs);
+	const mergedProps = $derived(mergeProps(restProps, radioGroupState.props));
 </script>
 
-{#if asChild}
-	<slot {builder} />
+{#if child}
+	{@render child({ props: mergedProps })}
 {:else}
-	<div bind:this={el} use:melt={builder} {...$$restProps}>
-		<slot {builder} />
+	<div {...mergedProps}>
+		{@render children?.()}
 	</div>
 {/if}

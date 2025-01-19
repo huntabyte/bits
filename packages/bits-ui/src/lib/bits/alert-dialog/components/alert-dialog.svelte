@@ -1,61 +1,21 @@
 <script lang="ts">
-	import { derived } from "svelte/store";
-	import { setCtx } from "../ctx.js";
-	import type { Props } from "../index.js";
+	import { box } from "svelte-toolbelt";
+	import type { AlertDialogRootProps } from "../types.js";
+	import { noop } from "$lib/internal/noop.js";
+	import { useDialogRoot } from "$lib/bits/dialog/dialog.svelte.js";
 
-	type $$Props = Props;
+	let { open = $bindable(false), onOpenChange = noop, children }: AlertDialogRootProps = $props();
 
-	export let preventScroll: $$Props["preventScroll"] = undefined;
-	export let closeOnEscape: $$Props["closeOnEscape"] = undefined;
-	export let closeOnOutsideClick: $$Props["closeOnOutsideClick"] = false;
-	export let portal: $$Props["portal"] = undefined;
-	export let open: $$Props["open"] = undefined;
-	export let onOpenChange: $$Props["onOpenChange"] = undefined;
-	export let openFocus: $$Props["openFocus"] = undefined;
-	export let closeFocus: $$Props["closeFocus"] = undefined;
-	export let onOutsideClick: $$Props["onOutsideClick"] = undefined;
-
-	const {
-		states: { open: localOpen },
-		updateOption,
-		ids,
-	} = setCtx({
-		closeOnEscape,
-		preventScroll,
-		closeOnOutsideClick,
-		portal,
-		forceVisible: true,
-		defaultOpen: open,
-		openFocus,
-		closeFocus,
-		onOutsideClick,
-		onOpenChange: ({ next }) => {
-			if (open !== next) {
-				onOpenChange?.(next);
-				open = next;
+	useDialogRoot({
+		variant: box.with(() => "alert-dialog"),
+		open: box.with(
+			() => open,
+			(v) => {
+				open = v;
+				onOpenChange(v);
 			}
-			return next;
-		},
+		),
 	});
-
-	const idValues = derived(
-		[ids.content, ids.description, ids.title],
-		([$contentId, $descriptionId, $titleId]) => ({
-			content: $contentId,
-			description: $descriptionId,
-			title: $titleId,
-		})
-	);
-
-	$: open !== undefined && localOpen.set(open);
-
-	$: updateOption("preventScroll", preventScroll);
-	$: updateOption("closeOnEscape", closeOnEscape);
-	$: updateOption("closeOnOutsideClick", closeOnOutsideClick);
-	$: updateOption("portal", portal);
-	$: updateOption("openFocus", openFocus);
-	$: updateOption("closeFocus", closeFocus);
-	$: updateOption("onOutsideClick", onOutsideClick);
 </script>
 
-<slot ids={$idValues} />
+{@render children?.()}

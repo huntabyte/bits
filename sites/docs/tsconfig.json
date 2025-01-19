@@ -11,8 +11,7 @@
 		"strict": true,
 		"moduleResolution": "NodeNext",
 		"module": "NodeNext",
-		"verbatimModuleSyntax": true,
-		"exactOptionalPropertyTypes": true
+		"verbatimModuleSyntax": true
 	},
 	"include": [
 		"./svelte-kit/ambient.d.ts",
@@ -21,19 +20,21 @@
 		"./src/**/*.js",
 		"./src/**/*.ts",
 		"./src/**/*.svelte",
+		"./src/**/*.md",
 		"./tests/**/*.js",
 		"./tests/**/*.ts",
 		"./tests/**/*.svelte",
-		".contentlayer/generated",
+		".velite/**/*",
 		"./mdsx.config.js",
-		"./svelte.config.js"
+		"./svelte.config.js",
+		"./other/**/*.js",
+		"./other/**/*.ts"
 	],
 	"exclude": [
 		"./node_modules/**",
 		"./svelte-kit/[!ambient.d.ts]**",
 		"./src/service-worker.js",
 		"./src/service-worker.ts",
-		"./src/service-worker.d.ts",
-		".contentlayer/generated"
+		"./src/service-worker.d.ts"
 	]
 }

@@ -1,47 +1,39 @@
 <script lang="ts">
-	import { melt } from "@melt-ui/svelte";
-	import { getCtx } from "../ctx.js";
-	import type { ItemEvents, ItemProps } from "../index.js";
-	import { disabledAttrs } from "$lib/internal/index.js";
-	import { createDispatcher } from "$lib/internal/events.js";
+	import { box, mergeProps } from "svelte-toolbelt";
+	import type { MenuItemProps } from "../types.js";
+	import { useMenuItem } from "../menu.svelte.js";
+	import { useId } from "$lib/internal/use-id.js";
+	import { noop } from "$lib/internal/noop.js";
 
-	type $$Props = ItemProps;
-	type $$Events = ItemEvents;
+	let {
+		child,
+		children,
+		ref = $bindable(null),
+		id = useId(),
+		disabled = false,
+		onSelect = noop,
+		closeOnSelect = true,
+		...restProps
+	}: MenuItemProps = $props();
 
-	export let href: $$Props["href"] = undefined;
-	export let asChild: $$Props["asChild"] = false;
-	export let disabled: $$Props["disabled"] = false;
-	export let el: $$Props["el"] = undefined;
+	const itemState = useMenuItem({
+		id: box.with(() => id),
+		disabled: box.with(() => disabled),
+		onSelect: box.with(() => onSelect),
+		ref: box.with(
+			() => ref,
+			(v) => (ref = v)
+		),
+		closeOnSelect: box.with(() => closeOnSelect),
+	});
 
-	const {
-		elements: { item },
-		getAttrs,
-	} = getCtx();
-	const dispatch = createDispatcher();
-
-	$: builder = $item;
-	$: attrs = { ...getAttrs("item"), ...disabledAttrs(disabled) };
-	$: Object.assign(builder, attrs);
+	const mergedProps = $derived(mergeProps(restProps, itemState.props));
 </script>
 
-{#if asChild}
-	<slot {builder} />
+{#if child}
+	{@render child({ props: mergedProps })}
 {:else}
-	<svelte:element
-		this={href ? "a" : "div"}
-		bind:this={el}
-		{href}
-		use:melt={builder}
-		{...$$restProps}
-		on:m-click={dispatch}
-		on:m-focusin={dispatch}
-		on:m-focusout={dispatch}
-		on:m-keydown={dispatch}
-		on:m-pointerdown={dispatch}
-		on:m-pointerleave={dispatch}
-		on:m-pointermove={dispatch}
-		on:pointerenter
-	>
-		<slot {builder} />
-	</svelte:element>
+	<div {...mergedProps}>
+		{@render children?.()}
+	</div>
 {/if}

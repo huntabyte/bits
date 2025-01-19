@@ -1,15 +1,12 @@
 <script lang="ts">
-	import { melt } from "@melt-ui/svelte";
-	import { getCtx } from "../ctx.js";
-	import type { InputProps } from "../index.js";
+	import { useCheckboxInput } from "../checkbox.svelte.js";
+	import VisuallyHidden from "$lib/bits/utilities/visually-hidden/visually-hidden.svelte";
 
-	type $$Props = InputProps;
-	export let el: $$Props["el"] = undefined;
-
-	const {
-		elements: { input },
-		options: { value },
-	} = getCtx();
+	const inputState = useCheckboxInput();
 </script>
 
-<input bind:this={el} use:melt={$input} value={$value ?? "on"} {...$$restProps} />
+{#if inputState.shouldRender}
+	<VisuallyHidden aria-hidden="true">
+		<input {...inputState.props} type="checkbox" style="display: none !important;" />
+	</VisuallyHidden>
+{/if}

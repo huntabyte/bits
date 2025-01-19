@@ -1,41 +1,23 @@
 import type { HTMLAnchorAttributes, HTMLButtonAttributes } from "svelte/elements";
-import type { DOMEl } from "$lib/internal/types.js";
-import type { Builder } from "$lib/internal/index.js";
+import type { WithoutChildren } from "svelte-toolbelt";
+import type { WithChildren } from "$lib/shared/index.js";
 
-export type ButtonPropsWithoutHTML = {
-	/**
-	 * Melt UI builders to apply to the button component.
-	 */
-	builders?: Builder[] | undefined;
-};
+export type ButtonRootPropsWithoutHTML = WithChildren<{
+	ref?: HTMLElement | null;
+}>;
 
-type AnchorElement = ButtonPropsWithoutHTML &
-	HTMLAnchorAttributes & {
-		href?: HTMLAnchorAttributes["href"] | undefined;
-		type?: never | undefined;
-	} & DOMEl<HTMLAnchorElement>;
+type AnchorElement = ButtonRootPropsWithoutHTML &
+	WithoutChildren<Omit<HTMLAnchorAttributes, "href" | "type">> & {
+		href: HTMLAnchorAttributes["href"];
+		type?: never;
+		disabled?: HTMLButtonAttributes["disabled"];
+	};
 
-type ButtonElement = ButtonPropsWithoutHTML &
-	HTMLButtonAttributes & {
-		type?: HTMLButtonAttributes["type"] | undefined;
-		href?: never | undefined;
-	} & DOMEl<HTMLButtonElement>;
+type ButtonElement = ButtonRootPropsWithoutHTML &
+	WithoutChildren<Omit<HTMLButtonAttributes, "type" | "href">> & {
+		type?: HTMLButtonAttributes["type"];
+		href?: never;
+		disabled?: HTMLButtonAttributes["disabled"];
+	};
 
-export type ButtonProps = AnchorElement | ButtonElement;
-
-export type ButtonEventHandler<T extends Event = Event> = T & {
-	currentTarget: EventTarget & HTMLButtonElement;
-};
-
-export type ButtonEvents = {
-	click: ButtonEventHandler<MouseEvent>;
-	keydown: ButtonEventHandler<KeyboardEvent>;
-	change: ButtonEventHandler<Event>;
-	keyup: ButtonEventHandler<KeyboardEvent>;
-	mouseenter: ButtonEventHandler<MouseEvent>;
-	mouseleave: ButtonEventHandler<MouseEvent>;
-	mousedown: ButtonEventHandler<MouseEvent>;
-	mouseup: ButtonEventHandler<MouseEvent>;
-	pointerdown: ButtonEventHandler<PointerEvent>;
-	pointerup: ButtonEventHandler<PointerEvent>;
-};
+export type ButtonRootProps = AnchorElement | ButtonElement;

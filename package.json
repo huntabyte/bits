@@ -7,33 +7,42 @@
 		"build:packages": "pnpm -F \"./packages/**\" --parallel build",
 		"check": "pnpm build:packages && pnpm -r check",
 		"ci:publish": "pnpm build:packages && changeset publish",
-		"dev": "pnpm -r --parallel dev",
+		"dev": "pnpm -F \"./packages/**\" svelte-kit sync && pnpm -r --parallel --reporter append-only --color dev",
 		"format": "prettier --write .",
 		"lint": "prettier --check . && eslint .",
 		"lint:fix": "eslint --fix .",
-		"test": "pnpm -F bits-ui test"
+		"test": "pnpm -F \"./packages/**\" --parallel --reporter append-only --color test",
+		"test:components": "pnpm -F tests test",
+		"test:utils": "pnpm -F bits-ui test"
 	},
 	"keywords": [],
 	"author": "Hunter Johnston <https://github.com/huntabyte>",
 	"license": "MIT",
 	"devDependencies": {
-		"@changesets/cli": "^2.27.1",
-		"@huntabyte/eslint-config": "^0.3.2",
-		"@svitejs/changesets-changelog-github-compact": "^1.1.0",
-		"eslint": "^9.10.0",
-		"eslint-plugin-svelte": "^2.44.0",
-		"prettier": "^3.2.5",
-		"prettier-plugin-svelte": "^3.2.2",
-		"prettier-plugin-tailwindcss": "0.5.13",
-		"svelte": "^4.2.9",
-		"svelte-eslint-parser": "^0.41.1",
-		"wrangler": "^3.44.0"
+		"@changesets/cli": "^2.27.9",
+		"@eslint/js": "^9.12.0",
+		"@svitejs/changesets-changelog-github-compact": "^1.2.0",
+		"@typescript-eslint/eslint-plugin": "^8.10.0",
+		"@typescript-eslint/scope-manager": "^8.10.0",
+		"@typescript-eslint/utils": "^8.10.0",
+		"eslint": "^9.0.0",
+		"eslint-config-prettier": "^9.1.0",
+		"eslint-plugin-svelte": "^2.46.1",
+		"globals": "^15.11.0",
+		"prettier": "^3.3.3",
+		"prettier-plugin-svelte": "^3.3.2",
+		"prettier-plugin-tailwindcss": "^0.6.8",
+		"svelte": "^5.16.0",
+		"svelte-eslint-parser": "^0.43.0",
+		"typescript": "^5.6.3",
+		"typescript-eslint": "^8.10.0",
+		"wrangler": "^3.87.0"
 	},
 	"type": "module",
 	"engines": {
-		"pnpm": ">=8.7.0",
+		"pnpm": ">=9.0.0",
 		"node": ">=18"
 	},
-	"private": true,
-	"packageManager": "pnpm@9.6.0"
+	"packageManager": "pnpm@9.14.4",
+	"private": true
 }

@@ -1,57 +1,100 @@
-import type { HTMLButtonAttributes } from "svelte/elements";
-import type { CreatePaginationProps as MeltPaginationProps, Page } from "@melt-ui/svelte";
-import type { CustomEventHandler } from "$lib/index.js";
-import type { HTMLDivAttributes } from "$lib/internal/types.js";
-import type { DOMElement, Expand, OnChangeFn } from "$lib/internal/index.js";
+import type { OnChangeFn, WithChild, Without } from "$lib/internal/types.js";
+import type {
+	BitsPrimitiveButtonAttributes,
+	BitsPrimitiveDivAttributes,
+} from "$lib/shared/attributes.js";
 
-type OmitPaginationProps<T> = Omit<T, "page" | "defaultPage" | "onPageChange">;
+type PaginationSnippetProps = {
+	pages: PageItem[];
+	range: { start: number; end: number };
+	currentPage: number;
+};
 
-export type PaginationPropsWithoutHTML = Expand<
-	OmitPaginationProps<MeltPaginationProps> & {
+export type PaginationRootPropsWithoutHTML = WithChild<
+	{
 		/**
-		 * The selected page. This updates as the users selects new pages.
-		 *
-		 * You can bind this to a value to programmatically control the value state.
+		 * The total number of items to be paginated.
 		 */
-		page?: number | undefined;
+		count: number;
+
+		/**
+		 * The number of items per page.
+		 *
+		 * @defaultValue 1
+		 */
+		perPage?: number;
+
+		/**
+		 * The number of visible items before and after the current page.
+		 *
+		 * @defaultValue 1
+		 */
+		siblingCount?: number;
+
+		/**
+		 * The current page number.
+		 *
+		 * @defaultValue 1
+		 */
+		page?: number;
 
 		/**
 		 * A callback function called when the page changes.
 		 */
-		onPageChange?: OnChangeFn<number> | undefined;
-	} & DOMElement
+		onPageChange?: OnChangeFn<number>;
+
+		/**
+		 * Whether keyboard navigation should loop back to the
+		 * first or last page trigger when reaching either end.
+		 *
+		 * @defaultValue false
+		 */
+		loop?: boolean;
+
+		/**
+		 * The orientation of the pagination component. Used to
+		 * determine how keyboard navigation should work between
+		 * pages.
+		 *
+		 * @defaultValue "horizontal"
+		 */
+		orientation?: "horizontal" | "vertical";
+	},
+	PaginationSnippetProps
 >;
 
-export type PaginationPagePropsWithoutHTML = {
+export type PaginationRootProps = PaginationRootPropsWithoutHTML &
+	Without<BitsPrimitiveDivAttributes, PaginationRootPropsWithoutHTML>;
+
+export type PaginationPagePropsWithoutHTML = WithChild<{
 	page: Page;
-} & DOMElement<HTMLButtonElement>;
+}>;
 
-export type PaginationPrevButtonPropsWithoutHTML = DOMElement<HTMLButtonElement>;
+export type PaginationPageProps = PaginationPagePropsWithoutHTML &
+	Without<BitsPrimitiveButtonAttributes, PaginationPagePropsWithoutHTML>;
 
-export type PaginationNextButtonPropsWithoutHTML = DOMElement<HTMLButtonElement>;
-//
+export type PaginationPrevButtonPropsWithoutHTML = WithChild;
 
-export type PaginationProps = PaginationPropsWithoutHTML & HTMLDivAttributes;
+export type PaginationPrevButtonProps = PaginationPrevButtonPropsWithoutHTML &
+	Without<BitsPrimitiveButtonAttributes, PaginationPrevButtonPropsWithoutHTML>;
 
-export type PaginationPrevButtonProps = PaginationPrevButtonPropsWithoutHTML & HTMLButtonAttributes;
+export type PaginationNextButtonPropsWithoutHTML = WithChild;
 
-export type PaginationNextButtonProps = PaginationNextButtonPropsWithoutHTML & HTMLButtonAttributes;
+export type PaginationNextButtonProps = PaginationNextButtonPropsWithoutHTML &
+	Without<BitsPrimitiveButtonAttributes, PaginationNextButtonPropsWithoutHTML>;
 
-export type PaginationPageProps = PaginationPagePropsWithoutHTML & HTMLButtonAttributes;
-
-/**
- * Events
- */
-type ButtonEvents = {
-	click: CustomEventHandler<MouseEvent, HTMLDivElement>;
+export type Page = {
+	type: "page";
+	value: number;
 };
 
-export type PaginationPrevButtonEvents = ButtonEvents;
+export type Ellipsis = {
+	type: "ellipsis";
+};
 
-export type PaginationNextButtonEvents = ButtonEvents;
-
-export type PaginationPageEvents = ButtonEvents;
-
-export type PaginationEvents = {
-	keydown: CustomEventHandler<KeyboardEvent, HTMLDivElement>;
+export type PageItem = (Page | Ellipsis) & {
+	/**
+	 * A unique key to be used as the key in a svelte `#each` block.
+	 */
+	key: string;
 };

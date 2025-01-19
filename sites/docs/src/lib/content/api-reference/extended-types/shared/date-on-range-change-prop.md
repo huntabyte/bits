@@ -1,0 +1,3 @@
+```ts
+(date: DateRange) => void
+```

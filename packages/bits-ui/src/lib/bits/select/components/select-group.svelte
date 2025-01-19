@@ -1,23 +1,32 @@
 <script lang="ts">
-	import { melt } from "@melt-ui/svelte";
-	import { setGroupCtx } from "../ctx.js";
-	import type { GroupProps } from "../index.js";
+	import { box, mergeProps } from "svelte-toolbelt";
+	import { useSelectGroup } from "../select.svelte.js";
+	import type { SelectGroupProps } from "../types.js";
+	import { useId } from "$lib/internal/use-id.js";
 
-	type $$Props = GroupProps;
-	export let asChild: $$Props["asChild"] = false;
-	export let el: $$Props["el"] = undefined;
+	let {
+		id = useId(),
+		ref = $bindable(null),
+		children,
+		child,
+		...restProps
+	}: SelectGroupProps = $props();
 
-	const { group, id, getAttrs } = setGroupCtx();
-	const attrs = getAttrs("group");
+	const groupState = useSelectGroup({
+		id: box.with(() => id),
+		ref: box.with(
+			() => ref,
+			(v) => (ref = v)
+		),
+	});
 
-	$: builder = $group(id);
-	$: Object.assign(builder, attrs);
+	const mergedProps = $derived(mergeProps(restProps, groupState.props));
 </script>
 
-{#if asChild}
-	<slot {builder} />
+{#if child}
+	{@render child({ props: mergedProps })}
 {:else}
-	<div bind:this={el} use:melt={builder} {...$$restProps}>
-		<slot {builder} />
+	<div {...mergedProps}>
+		{@render children?.()}
 	</div>
 {/if}

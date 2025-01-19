@@ -1,19 +1,22 @@
 <script lang="ts">
+	import type { HTMLAnchorAttributes } from "svelte/elements";
 	import { page } from "$app/stores";
 	import { cn } from "$lib/utils/index.js";
 
-	export let href: string;
-	export let open: boolean;
-
-	let className: string | undefined | null = undefined;
-	export { className as class };
+	let {
+		onClose,
+		href = "#",
+		children,
+		class: className,
+		...restProps
+	}: HTMLAnchorAttributes & { onClose?: () => void } = $props();
 </script>
 
 <a
 	{href}
-	on:click={() => (open = false)}
+	onclick={onClose}
 	class={cn($page.url.pathname === href ? "text-foreground" : "text-foreground/60", className)}
-	{...$$restProps}
+	{...restProps}
 >
-	<slot />
+	{@render children?.()}
 </a>

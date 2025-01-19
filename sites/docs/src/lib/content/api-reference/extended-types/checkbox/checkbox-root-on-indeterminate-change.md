@@ -1,0 +1,3 @@
+```ts
+(indeterminate: boolean) => void
+```

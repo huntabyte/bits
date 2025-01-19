@@ -1,0 +1,3 @@
+```ts
+"narrow" | "short" | "long";
+```

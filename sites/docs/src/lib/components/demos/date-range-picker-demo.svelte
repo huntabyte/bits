@@ -1,75 +1,62 @@
 <script lang="ts">
 	import { type DateRange, DateRangePicker } from "bits-ui";
-	import { CalendarBlank, CaretLeft, CaretRight } from "$icons/index.js";
-	import { cn, flyAndScale } from "$lib/utils/index.js";
+	import CalendarBlank from "phosphor-svelte/lib/CalendarBlank";
+	import CaretLeft from "phosphor-svelte/lib/CaretLeft";
+	import CaretRight from "phosphor-svelte/lib/CaretRight";
+	import { cn } from "$lib/utils/index.js";
 
-	let value: DateRange | undefined = undefined;
+	let value: DateRange = $state({ start: undefined, end: undefined });
 </script>
 
-<DateRangePicker.Root bind:value weekdayFormat="short" fixedWeeks={true}>
-	<div class="flex w-full max-w-[320px] flex-col gap-1.5">
-		<DateRangePicker.Label class="block select-none text-sm font-medium"
-			>Rental Days</DateRangePicker.Label
+<DateRangePicker.Root
+	bind:value
+	weekdayFormat="short"
+	fixedWeeks={true}
+	class="flex w-full max-w-[340px] flex-col gap-1.5"
+>
+	<DateRangePicker.Label class="block select-none text-sm font-medium"
+		>Rental Days</DateRangePicker.Label
+	>
+	<div
+		class="flex h-input w-full select-none items-center rounded-input border border-border-input bg-background px-2 py-3 text-sm tracking-[0.01em] text-foreground focus-within:border-border-input-hover focus-within:shadow-date-field-focus hover:border-border-input-hover"
+	>
+		{#each ["start", "end"] as const as type}
+			<DateRangePicker.Input {type}>
+				{#snippet children({ segments })}
+					{#each segments as { part, value }}
+						<div class="inline-block select-none">
+							{#if part === "literal"}
+								<DateRangePicker.Segment {part} class="p-1 text-muted-foreground">
+									{value}
+								</DateRangePicker.Segment>
+							{:else}
+								<DateRangePicker.Segment
+									{part}
+									class="rounded-5px px-1 py-1 hover:bg-muted focus:bg-muted focus:text-foreground focus-visible:!ring-0 focus-visible:!ring-offset-0 aria-[valuetext=Empty]:text-muted-foreground"
+								>
+									{value}
+								</DateRangePicker.Segment>
+							{/if}
+						</div>
+					{/each}
+				{/snippet}
+			</DateRangePicker.Input>
+			{#if type === "start"}
+				<div aria-hidden="true" class="px-1 text-muted-foreground">–⁠⁠⁠⁠⁠</div>
+			{/if}
+		{/each}
+
+		<DateRangePicker.Trigger
+			class="ml-auto inline-flex size-8 items-center justify-center rounded-[5px] text-foreground/60 transition-all hover:bg-muted active:bg-dark-10"
 		>
-		<DateRangePicker.Input
-			let:segments
-			class="flex h-input w-full max-w-[320px] select-none items-center rounded-input border border-border-input bg-background px-2 py-3 text-sm tracking-[0.01em] text-foreground focus-within:border-border-input-hover focus-within:shadow-date-field-focus hover:border-border-input-hover"
+			<CalendarBlank class="size-6" />
+		</DateRangePicker.Trigger>
+	</div>
+	<DateRangePicker.Content sideOffset={6} class="z-50">
+		<DateRangePicker.Calendar
+			class="mt-6 rounded-15px border border-dark-10 bg-background-alt p-[22px] shadow-popover"
 		>
-			{#each segments.start as { part, value }}
-				<div class="inline-block select-none">
-					{#if part === "literal"}
-						<DateRangePicker.Segment
-							type="start"
-							{part}
-							class="p-1 text-muted-foreground"
-						>
-							{value}
-						</DateRangePicker.Segment>
-					{:else}
-						<DateRangePicker.Segment
-							type="start"
-							{part}
-							class="rounded-5px px-1 py-1 hover:bg-muted focus:bg-muted focus:text-foreground focus-visible:!ring-0 focus-visible:!ring-offset-0 aria-[valuetext=Empty]:text-muted-foreground"
-						>
-							{value}
-						</DateRangePicker.Segment>
-					{/if}
-				</div>
-			{/each}
-			<div aria-hidden="true" class="px-1 text-muted-foreground">–</div>
-			{#each segments.end as { part, value }}
-				<div class="inline-block select-none">
-					{#if part === "literal"}
-						<DateRangePicker.Segment
-							type="end"
-							{part}
-							class="p-1 text-muted-foreground"
-						>
-							{value}
-						</DateRangePicker.Segment>
-					{:else}
-						<DateRangePicker.Segment
-							type="end"
-							{part}
-							class="rounded-5px px-1 py-1 hover:bg-muted focus:bg-muted focus:text-foreground focus-visible:!ring-0 focus-visible:!ring-offset-0 aria-[valuetext=Empty]:text-muted-foreground"
-						>
-							{value}
-						</DateRangePicker.Segment>
-					{/if}
-				</div>
-			{/each}
-			<DateRangePicker.Trigger
-				class="ml-auto inline-flex size-8 items-center justify-center rounded-[5px] text-foreground/60 transition-all hover:bg-muted active:bg-dark-10"
-			>
-				<CalendarBlank class="size-6" />
-			</DateRangePicker.Trigger>
-		</DateRangePicker.Input>
-		<DateRangePicker.Content sideOffset={6} transition={flyAndScale} class="z-50">
-			<DateRangePicker.Calendar
-				class="mt-6 rounded-15px border border-dark-10 bg-background-alt p-[22px] shadow-popover"
-				let:months
-				let:weekdays
-			>
+			{#snippet children({ months, weekdays })}
 				<DateRangePicker.Header class="flex items-center justify-between">
 					<DateRangePicker.PrevButton
 						class="inline-flex size-10 items-center justify-center rounded-9px bg-background-alt transition-all hover:bg-muted active:scale-98"
@@ -103,11 +90,10 @@
 										{#each weekDates as date}
 											<DateRangePicker.Cell
 												{date}
+												month={month.value}
 												class="relative m-0 size-10 overflow-visible !p-0 text-center text-sm focus-within:relative focus-within:z-20"
 											>
 												<DateRangePicker.Day
-													{date}
-													month={month.value}
 													class={cn(
 														"group relative inline-flex size-10 items-center justify-center overflow-visible whitespace-nowrap rounded-9px border border-transparent bg-background bg-transparent p-0 text-sm font-normal text-foreground transition-all hover:border-foreground  focus-visible:!ring-foreground data-[disabled]:pointer-events-none data-[outside-month]:pointer-events-none data-[highlighted]:rounded-none data-[selection-end]:rounded-9px data-[selection-start]:rounded-9px data-[highlighted]:bg-muted data-[selected]:bg-muted data-[selection-end]:bg-foreground data-[selection-start]:bg-foreground data-[selected]:font-medium data-[selection-end]:font-medium data-[selection-start]:font-medium data-[disabled]:text-foreground/30 data-[selected]:text-foreground data-[selection-end]:text-background data-[selection-start]:text-background data-[unavailable]:text-muted-foreground data-[unavailable]:line-through data-[selection-start]:focus-visible:ring-2 data-[selection-start]:focus-visible:!ring-offset-2 data-[selected]:[&:not([data-selection-start])]:[&:not([data-selection-end])]:rounded-none data-[selected]:[&:not([data-selection-start])]:[&:not([data-selection-end])]:focus-visible:border-foreground data-[selected]:[&:not([data-selection-start])]:[&:not([data-selection-end])]:focus-visible:!ring-0 data-[selected]:[&:not([data-selection-start])]:[&:not([data-selection-end])]:focus-visible:!ring-offset-0"
 													)}
@@ -125,7 +111,7 @@
 						</DateRangePicker.Grid>
 					{/each}
 				</div>
-			</DateRangePicker.Calendar>
-		</DateRangePicker.Content>
-	</div>
+			{/snippet}
+		</DateRangePicker.Calendar>
+	</DateRangePicker.Content>
 </DateRangePicker.Root>

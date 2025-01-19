@@ -1,99 +1,95 @@
 <script lang="ts">
-	import { melt } from "@melt-ui/svelte";
-	import { getCtx, updatePositioning } from "../ctx.js";
-	import type { ContentProps } from "../index.js";
-	import type { Transition } from "$lib/internal/index.js";
+	import { box, mergeProps } from "svelte-toolbelt";
+	import type { PopoverContentProps } from "../types.js";
+	import { usePopoverContent } from "../popover.svelte.js";
+	import PopperLayer from "$lib/bits/utilities/popper-layer/popper-layer.svelte";
+	import { noop } from "$lib/internal/noop.js";
+	import { useId } from "$lib/internal/use-id.js";
+	import { getFloatingContentCSSVars } from "$lib/internal/floating-svelte/floating-utils.svelte.js";
+	import PopperLayerForceMount from "$lib/bits/utilities/popper-layer/popper-layer-force-mount.svelte";
 
-	type T = $$Generic<Transition>;
-	type In = $$Generic<Transition>;
-	type Out = $$Generic<Transition>;
+	let {
+		child,
+		children,
+		ref = $bindable(null),
+		id = useId(),
+		forceMount = false,
+		onCloseAutoFocus = noop,
+		onEscapeKeydown = noop,
+		onInteractOutside = noop,
+		trapFocus = true,
+		preventScroll = false,
+		...restProps
+	}: PopoverContentProps = $props();
 
-	type $$Props = ContentProps<T, In, Out>;
+	const contentState = usePopoverContent({
+		id: box.with(() => id),
+		ref: box.with(
+			() => ref,
+			(v) => (ref = v)
+		),
+		onInteractOutside: box.with(() => onInteractOutside),
+		onEscapeKeydown: box.with(() => onEscapeKeydown),
+		onCloseAutoFocus: box.with(() => onCloseAutoFocus),
+	});
 
-	export let transition: $$Props["transition"] = undefined;
-	export let transitionConfig: $$Props["transitionConfig"] = undefined;
-	export let inTransition: $$Props["inTransition"] = undefined;
-	export let inTransitionConfig: $$Props["inTransitionConfig"] = undefined;
-	export let outTransition: $$Props["outTransition"] = undefined;
-	export let outTransitionConfig: $$Props["outTransitionConfig"] = undefined;
-	export let asChild: $$Props["asChild"] = false;
-	export let id: $$Props["id"] = undefined;
-	export let side: $$Props["side"] = "bottom";
-	export let align: $$Props["align"] = "center";
-	export let sideOffset: $$Props["sideOffset"] = 0;
-	export let alignOffset: $$Props["alignOffset"] = 0;
-	export let collisionPadding: $$Props["collisionPadding"] = 8;
-	export let avoidCollisions: $$Props["avoidCollisions"] = true;
-	export let collisionBoundary: $$Props["collisionBoundary"] = undefined;
-	export let sameWidth: $$Props["sameWidth"] = false;
-	export let fitViewport: $$Props["fitViewport"] = false;
-	export let strategy: $$Props["strategy"] = "absolute";
-	export let overlap: $$Props["overlap"] = false;
-	export let el: $$Props["el"] = undefined;
-
-	const {
-		elements: { content },
-		states: { open },
-		ids,
-		getAttrs,
-	} = getCtx();
-
-	const attrs = getAttrs("content");
-
-	$: if (id) {
-		ids.content.set(id);
-	}
-	$: builder = $content;
-	$: Object.assign(builder, attrs);
-
-	$: if ($open) {
-		updatePositioning({
-			side,
-			align,
-			sideOffset,
-			alignOffset,
-			collisionPadding,
-			avoidCollisions,
-			collisionBoundary,
-			sameWidth,
-			fitViewport,
-			strategy,
-			overlap,
-		});
-	}
+	const mergedProps = $derived(mergeProps(restProps, contentState.props));
 </script>
 
-{#if asChild && $open}
-	<slot {builder} />
-{:else if transition && $open}
-	<div
-		bind:this={el}
-		transition:transition={transitionConfig}
-		use:melt={builder}
-		{...$$restProps}
+{#if forceMount}
+	<PopperLayerForceMount
+		{...mergedProps}
+		enabled={contentState.root.open.current}
+		{id}
+		onInteractOutside={contentState.handleInteractOutside}
+		onEscapeKeydown={contentState.handleEscapeKeydown}
+		onCloseAutoFocus={contentState.handleCloseAutoFocus}
+		{trapFocus}
+		{preventScroll}
+		loop
+		forceMount={true}
 	>
-		<slot {builder} />
-	</div>
-{:else if inTransition && outTransition && $open}
-	<div
-		bind:this={el}
-		in:inTransition={inTransitionConfig}
-		out:outTransition={outTransitionConfig}
-		use:melt={builder}
-		{...$$restProps}
+		{#snippet popper({ props, wrapperProps })}
+			{@const finalProps = mergeProps(props, {
+				style: getFloatingContentCSSVars("popover"),
+			})}
+			{#if child}
+				{@render child({ props: finalProps, wrapperProps, ...contentState.snippetProps })}
+			{:else}
+				<div {...wrapperProps}>
+					<div {...finalProps}>
+						{@render children?.()}
+					</div>
+				</div>
+			{/if}
+		{/snippet}
+	</PopperLayerForceMount>
+{:else if !forceMount}
+	<PopperLayer
+		{...mergedProps}
+		present={contentState.root.open.current}
+		{id}
+		onInteractOutside={contentState.handleInteractOutside}
+		onEscapeKeydown={contentState.handleEscapeKeydown}
+		onCloseAutoFocus={contentState.handleCloseAutoFocus}
+		{trapFocus}
+		{preventScroll}
+		loop
+		forceMount={false}
 	>
-		<slot {builder} />
-	</div>
-{:else if inTransition && $open}
-	<div bind:this={el} in:inTransition={inTransitionConfig} use:melt={builder} {...$$restProps}>
-		<slot {builder} />
-	</div>
-{:else if outTransition && $open}
-	<div bind:this={el} out:outTransition={outTransitionConfig} use:melt={builder} {...$$restProps}>
-		<slot {builder} />
-	</div>
-{:else if $open}
-	<div bind:this={el} use:melt={builder} {...$$restProps}>
-		<slot {builder} />
-	</div>
+		{#snippet popper({ props, wrapperProps })}
+			{@const finalProps = mergeProps(props, {
+				style: getFloatingContentCSSVars("popover"),
+			})}
+			{#if child}
+				{@render child({ props: finalProps, wrapperProps, ...contentState.snippetProps })}
+			{:else}
+				<div {...wrapperProps}>
+					<div {...finalProps}>
+						{@render children?.()}
+					</div>
+				</div>
+			{/if}
+		{/snippet}
+	</PopperLayer>
 {/if}
