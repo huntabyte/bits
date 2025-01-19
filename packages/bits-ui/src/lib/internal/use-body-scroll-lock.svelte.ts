@@ -24,17 +24,14 @@ const useBodyLockStackCount = createSharedHook(() => {
 		return false;
 	});
 
-	let initialBodyStyle: Partial<CSSStyleDeclaration> = $state<Partial<CSSStyleDeclaration>>({});
+	let initialBodyStyle: string | null = $state<string | null>(null);
 
 	let stopTouchMoveListener: Fn | null = null;
 
 	function resetBodyStyle() {
 		if (!isBrowser) return;
-		document.body.style.paddingRight = initialBodyStyle.paddingRight ?? "";
-		document.body.style.marginRight = initialBodyStyle.marginRight ?? "";
-		document.body.style.pointerEvents = initialBodyStyle.pointerEvents ?? "";
+		document.body.setAttribute("style", initialBodyStyle ?? "");
 		document.body.style.removeProperty("--scrollbar-width");
-		document.body.style.overflow = initialBodyStyle.overflow ?? "";
 		isIOS && stopTouchMoveListener?.();
 	}
 
@@ -45,19 +42,16 @@ const useBodyLockStackCount = createSharedHook(() => {
 				return;
 			}
 
+			initialBodyStyle = document.body.getAttribute("style");
 			const bodyStyle = getComputedStyle(document.body);
-			initialBodyStyle.overflow = bodyStyle.overflow;
-			initialBodyStyle.paddingRight = bodyStyle.paddingRight;
-			initialBodyStyle.marginRight = bodyStyle.marginRight;
-			initialBodyStyle.pointerEvents = bodyStyle.pointerEvents;
 
 			// TODO: account for RTL direction, etc.
 			const verticalScrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
-			const paddingRight = Number.parseInt(initialBodyStyle.paddingRight ?? "0", 10);
+			const paddingRight = Number.parseInt(bodyStyle.paddingRight ?? "0", 10);
 
 			const config = {
 				padding: paddingRight + verticalScrollbarWidth,
-				margin: Number.parseInt(initialBodyStyle.marginRight ?? "0", 10),
+				margin: Number.parseInt(bodyStyle.marginRight ?? "0", 10),
 			};
 
 			if (verticalScrollbarWidth > 0) {
