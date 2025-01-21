@@ -52,7 +52,7 @@ Here's an overview of how the Command component is structured in code:
 
 ```svelte
 <script lang="ts">
-	import { Combobox } from "bits-ui";
+	import { Command } from "bits-ui";
 </script>
 
 <Command.Root>
