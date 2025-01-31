@@ -1,6 +1,6 @@
 import { untrack } from "svelte";
 import { afterSleep, afterTick, srOnlyStyles, useRefById } from "svelte-toolbelt";
-import { Context } from "runed";
+import { Context, watch } from "runed";
 import { findNextSibling, findPreviousSibling } from "./utils.js";
 import { commandScore } from "./command-score.js";
 import type { CommandState } from "./types.js";
@@ -622,9 +622,12 @@ class CommandGroupContainerState {
 			deps: () => this.shouldRender,
 		});
 
-		$effect(() => {
-			return this.#root.registerGroup(this.id.current);
-		});
+		watch.pre(
+			() => this.id.current,
+			(id) => {
+				return this.#root.registerGroup(id);
+			}
+		);
 
 		$effect(() => {
 			if (this.#value.current) {
@@ -813,6 +816,7 @@ class CommandItemState {
 		return this.#forceMount.current || this.#group?.forceMount.current === true;
 	});
 	trueValue = $state("");
+	#isFirstRender = $state(true);
 	shouldRender = $derived.by(() => {
 		if (
 			this.#trueForceMount ||
@@ -821,6 +825,8 @@ class CommandItemState {
 		) {
 			return true;
 		}
+
+		if (!this.#ref.current && this.#isFirstRender) return true;
 		const currentScore = this.root.commandState.filtered.items.get(this.id.current);
 		if (currentScore === undefined) return false;
 		return currentScore > 0;
@@ -844,35 +850,34 @@ class CommandItemState {
 		useRefById({
 			id: this.id,
 			ref: this.#ref,
-			deps: () => Boolean(this.root.commandState.search),
+			deps: () => this.root.commandState.search,
 		});
 
-		$effect(() => {
-			this.id.current;
-			this.#group?.id.current;
-			if (!this.#forceMount.current) {
-				return untrack(() => {
-					return this.root.registerItem(this.id.current, this.#group?.id.current);
-				});
+		watch.pre(
+			[() => this.id.current, () => this.#group?.id.current, () => this.#forceMount.current],
+			([id, groupId, forceMount]) => {
+				if (!forceMount) {
+					return this.root.registerItem(id, groupId);
+				}
 			}
-		});
+		);
 
-		$effect(() => {
-			const value = this.#value.current;
-			const node = this.#ref.current;
+		watch.pre([() => this.#value.current, () => this.#ref.current], ([value, node]) => {
 			if (!node) return;
 			if (!value && node.textContent) {
 				this.trueValue = node.textContent.trim();
 			}
 
-			untrack(() => {
-				this.root.registerValue(
-					this.id.current,
-					this.trueValue,
-					props.keywords.current.map((keyword) => keyword.trim())
-				);
-				node.setAttribute(VALUE_ATTR, this.trueValue);
-			});
+			this.root.registerValue(
+				this.id.current,
+				this.trueValue,
+				props.keywords.current.map((keyword) => keyword.trim())
+			);
+			node.setAttribute(VALUE_ATTR, this.trueValue);
+		});
+
+		$effect(() => {
+			this.#isFirstRender = false;
 		});
 
 		// bindings

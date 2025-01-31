@@ -7414,7 +7414,7 @@ snapshots:
 
   runed@0.20.0(svelte@5.19.4):
     dependencies:
-      esm-env: 1.2.1
+      esm-env: 1.2.2
       svelte: 5.19.4
 
   runed@0.23.1(svelte@5.19.4):
