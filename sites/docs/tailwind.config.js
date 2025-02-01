@@ -95,6 +95,9 @@ export default {
 				98: ".98",
 				99: ".99",
 			},
+			screens: {
+				desktop: "1440px",
+			},
 		},
 		keyframes: {
 			"accordion-down": {
