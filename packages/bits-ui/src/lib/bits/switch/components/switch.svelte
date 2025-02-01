@@ -1,70 +1,54 @@
 <script lang="ts">
-	import { melt } from "@melt-ui/svelte";
-	import { setCtx } from "../ctx.js";
-	import type { Events, Props } from "../index.js";
+	import { box, mergeProps } from "svelte-toolbelt";
+	import type { SwitchRootProps } from "../types.js";
+	import { useSwitchRoot } from "../switch.svelte.js";
 	import SwitchInput from "./switch-input.svelte";
-	import { createDispatcher } from "$lib/internal/events.js";
+	import { useId } from "$lib/internal/use-id.js";
+	import { noop } from "$lib/internal/noop.js";
 
-	type $$Props = Props;
-	type $$Events = Events;
-	export let checked: $$Props["checked"] = undefined;
-	export let onCheckedChange: $$Props["onCheckedChange"] = undefined;
-	export let disabled: $$Props["disabled"] = undefined;
-	export let name: $$Props["name"] = undefined;
-	export let value: $$Props["value"] = undefined;
-	export let includeInput: $$Props["includeInput"] = true;
-	export let required: $$Props["required"] = undefined;
-	export let asChild: $$Props["asChild"] = false;
-	export let inputAttrs: $$Props["inputAttrs"] = undefined;
-	export let el: $$Props["el"] = undefined;
+	let {
+		child,
+		children,
+		ref = $bindable(null),
+		id = useId(),
+		disabled = false,
+		required = false,
+		checked = $bindable(false),
+		value = "on",
+		name = undefined,
+		type = "button",
+		onCheckedChange = noop,
+		...restProps
+	}: SwitchRootProps = $props();
 
-	const {
-		elements: { root },
-		states: { checked: localChecked },
-		updateOption,
-		getAttrs,
-	} = setCtx({
-		disabled,
-		name,
-		value,
-		required,
-		defaultChecked: checked,
-		onCheckedChange: ({ next }) => {
-			if (checked !== next) {
-				onCheckedChange?.(next);
-				checked = next;
+	const rootState = useSwitchRoot({
+		checked: box.with(
+			() => checked,
+			(v) => {
+				checked = v;
+				onCheckedChange?.(v);
 			}
-			return next;
-		},
+		),
+		disabled: box.with(() => disabled ?? false),
+		required: box.with(() => required),
+		value: box.with(() => value),
+		name: box.with(() => name),
+		id: box.with(() => id),
+		ref: box.with(
+			() => ref,
+			(v) => (ref = v)
+		),
 	});
 
-	const dispatch = createDispatcher();
-
-	$: checked !== undefined && localChecked.set(checked);
-	$: updateOption("disabled", disabled);
-	$: updateOption("name", name);
-	$: updateOption("value", value);
-	$: updateOption("required", required);
-
-	$: builder = $root;
-	$: attrs = { ...getAttrs("root"), "data-checked": checked ? "" : undefined };
-	$: Object.assign(builder, attrs);
+	const mergedProps = $derived(mergeProps(restProps, rootState.props, { type }));
 </script>
 
-{#if asChild}
-	<slot {builder} />
+{#if child}
+	{@render child({ props: mergedProps, checked: rootState.checked.current })}
 {:else}
-	<button
-		bind:this={el}
-		use:melt={builder}
-		type="button"
-		{...$$restProps}
-		on:m-click={dispatch}
-		on:m-keydown={dispatch}
-	>
-		<slot {builder} />
+	<button {...mergedProps}>
+		{@render children?.({ checked: rootState.checked.current })}
 	</button>
 {/if}
-{#if includeInput}
-	<SwitchInput {...inputAttrs} />
-{/if}
+
+<SwitchInput />

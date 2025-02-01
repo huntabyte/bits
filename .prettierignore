@@ -15,11 +15,11 @@ yarn.lock
 package.json
 .vercel
 .contentlayer
+.velite
 **/dist
 
 CHANGELOG.md
 
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
-
-
+sites/docs/src/routes/api/search.json/search.json

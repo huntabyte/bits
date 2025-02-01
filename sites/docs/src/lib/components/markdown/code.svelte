@@ -1,7 +1,7 @@
 <script lang="ts">
+	import type { HTMLAttributes } from "svelte/elements";
 	import { cn } from "$lib/utils/index.js";
-	let className: string | undefined | null = undefined;
-	export { className as class };
+	let { class: className, children, ...restProps }: HTMLAttributes<HTMLElement> = $props();
 </script>
 
 <code
@@ -10,6 +10,7 @@
 		className,
 		"custom"
 	)}
+	{...restProps}
 >
-	<slot />
+	{@render children?.()}
 </code>

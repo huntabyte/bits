@@ -1,31 +1,32 @@
 <script lang="ts">
-	import { createLabel, melt } from "@melt-ui/svelte";
-	import { getLabelData } from "../ctx.js";
-	import type { Events, Props } from "../index.js";
-	import { createDispatcher } from "$lib/internal/events.js";
+	import { box, mergeProps } from "svelte-toolbelt";
+	import type { LabelRootProps } from "../types.js";
+	import { setLabelRootState } from "../label.svelte.js";
+	import { useId } from "$lib/internal/use-id.js";
 
-	type $$Props = Props;
-	type $$Events = Events;
+	let {
+		children,
+		child,
+		id = useId(),
+		ref = $bindable(null),
+		for: forProp,
+		...restProps
+	}: LabelRootProps = $props();
 
-	export let asChild: $$Props["asChild"] = false;
-	export let el: $$Props["el"] = undefined;
-
-	const {
-		elements: { root },
-	} = createLabel();
-
-	const dispatch = createDispatcher();
-	const { getAttrs } = getLabelData();
-	const attrs = getAttrs("root");
-
-	$: builder = $root;
-	$: Object.assign(builder, attrs);
+	const rootState = setLabelRootState({
+		id: box.with(() => id),
+		ref: box.with(
+			() => ref,
+			(v) => (ref = v)
+		),
+	});
+	const mergedProps = $derived(mergeProps(restProps, rootState.props, { for: forProp }));
 </script>
 
-{#if asChild}
-	<slot {builder} />
+{#if child}
+	{@render child({ props: mergedProps })}
 {:else}
-	<label bind:this={el} use:melt={builder} {...$$restProps} on:m-mousedown={dispatch}>
-		<slot {builder} />
+	<label {...mergedProps} for={forProp}>
+		{@render children?.()}
 	</label>
 {/if}

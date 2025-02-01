@@ -1,125 +1,121 @@
 <script lang="ts">
-	import { melt } from "@melt-ui/svelte";
-	import { getCtx, updatePositioning } from "../ctx.js";
-	import type { ContentEvents, ContentProps } from "../index.js";
-	import { type Transition, createDispatcher } from "$lib/internal/index.js";
+	import { box, mergeProps } from "svelte-toolbelt";
+	import type { TooltipContentProps } from "../types.js";
+	import { useTooltipContent } from "../tooltip.svelte.js";
+	import { useId } from "$lib/internal/use-id.js";
+	import PopperLayer from "$lib/bits/utilities/popper-layer/popper-layer.svelte";
+	import { getFloatingContentCSSVars } from "$lib/internal/floating-svelte/floating-utils.svelte.js";
+	import PopperLayerForceMount from "$lib/bits/utilities/popper-layer/popper-layer-force-mount.svelte";
 
-	type T = $$Generic<Transition>;
-	type In = $$Generic<Transition>;
-	type Out = $$Generic<Transition>;
+	let {
+		children,
+		child,
+		id = useId(),
+		ref = $bindable(null),
+		side = "top",
+		sideOffset = 0,
+		align = "center",
+		avoidCollisions = true,
+		arrowPadding = 0,
+		sticky = "partial",
+		hideWhenDetached = false,
+		collisionPadding = 0,
+		onInteractOutside,
+		onEscapeKeydown,
+		forceMount = false,
+		...restProps
+	}: TooltipContentProps = $props();
 
-	type $$Props = ContentProps<T, In, Out>;
-	type $$Events = ContentEvents;
+	const contentState = useTooltipContent({
+		id: box.with(() => id),
+		ref: box.with(
+			() => ref,
+			(v) => (ref = v)
+		),
+	});
 
-	export let transition: $$Props["transition"] = undefined;
-	export let transitionConfig: $$Props["transitionConfig"] = undefined;
-	export let inTransition: $$Props["inTransition"] = undefined;
-	export let inTransitionConfig: $$Props["inTransitionConfig"] = undefined;
-	export let outTransition: $$Props["outTransition"] = undefined;
-	export let outTransitionConfig: $$Props["outTransitionConfig"] = undefined;
-	export let asChild: $$Props["asChild"] = false;
-	export let id: $$Props["id"] = undefined;
-	export let side: $$Props["side"] = "top";
-	export let align: $$Props["align"] = "center";
-	export let sideOffset: $$Props["sideOffset"] = 0;
-	export let alignOffset: $$Props["alignOffset"] = 0;
-	export let collisionPadding: $$Props["collisionPadding"] = 8;
-	export let avoidCollisions: $$Props["avoidCollisions"] = true;
-	export let collisionBoundary: $$Props["collisionBoundary"] = undefined;
-	export let sameWidth: $$Props["sameWidth"] = false;
-	export let fitViewport: $$Props["fitViewport"] = false;
-	export let strategy: $$Props["strategy"] = "absolute";
-	export let overlap: $$Props["overlap"] = false;
-	export let el: $$Props["el"] = undefined;
+	const floatingProps = $derived({
+		side,
+		sideOffset,
+		align,
+		avoidCollisions,
+		arrowPadding,
+		sticky,
+		hideWhenDetached,
+		collisionPadding,
+	});
 
-	const {
-		elements: { content },
-		states: { open },
-		ids,
-		getAttrs,
-	} = getCtx();
+	const mergedProps = $derived(mergeProps(restProps, floatingProps, contentState.props));
 
-	const dispatch = createDispatcher();
-	const attrs = getAttrs("content");
-
-	$: if (id) {
-		ids.content.set(id);
+	function handleInteractOutside(e: PointerEvent) {
+		onInteractOutside?.(e);
+		if (e.defaultPrevented) return;
+		contentState.root.handleClose();
 	}
-	$: builder = $content;
-	$: Object.assign(builder, attrs);
 
-	$: if ($open) {
-		updatePositioning({
-			side,
-			align,
-			sideOffset,
-			alignOffset,
-			collisionPadding,
-			avoidCollisions,
-			collisionBoundary,
-			sameWidth,
-			fitViewport,
-			strategy,
-			overlap,
-		});
+	function handleEscapeKeydown(e: KeyboardEvent) {
+		onEscapeKeydown?.(e);
+		if (e.defaultPrevented) return;
+		contentState.root.handleClose();
 	}
 </script>
 
-{#if asChild && $open}
-	<slot {builder} />
-{:else if transition && $open}
-	<div
-		bind:this={el}
-		use:melt={builder}
-		transition:transition={transitionConfig}
-		{...$$restProps}
-		on:m-pointerdown={dispatch}
-		on:m-pointerenter={dispatch}
+{#if forceMount}
+	<PopperLayerForceMount
+		{...mergedProps}
+		enabled={contentState.root.open.current}
+		{id}
+		onInteractOutside={handleInteractOutside}
+		onEscapeKeydown={handleEscapeKeydown}
+		onOpenAutoFocus={(e) => e.preventDefault()}
+		onCloseAutoFocus={(e) => e.preventDefault()}
+		trapFocus={false}
+		loop={false}
+		preventScroll={false}
+		forceMount={true}
 	>
-		<slot {builder} />
-	</div>
-{:else if inTransition && outTransition && $open}
-	<div
-		bind:this={el}
-		use:melt={builder}
-		in:inTransition={inTransitionConfig}
-		out:outTransition={outTransitionConfig}
-		{...$$restProps}
-		on:m-pointerdown={dispatch}
-		on:m-pointerenter={dispatch}
+		{#snippet popper({ props, wrapperProps })}
+			{@const mergedProps = mergeProps(props, {
+				style: getFloatingContentCSSVars("tooltip"),
+			})}
+			{#if child}
+				{@render child({ props: mergedProps, wrapperProps, ...contentState.snippetProps })}
+			{:else}
+				<div {...wrapperProps}>
+					<div {...mergedProps}>
+						{@render children?.()}
+					</div>
+				</div>
+			{/if}
+		{/snippet}
+	</PopperLayerForceMount>
+{:else if !forceMount}
+	<PopperLayer
+		{...mergedProps}
+		present={contentState.root.open.current}
+		{id}
+		onInteractOutside={handleInteractOutside}
+		onEscapeKeydown={handleEscapeKeydown}
+		onOpenAutoFocus={(e) => e.preventDefault()}
+		onCloseAutoFocus={(e) => e.preventDefault()}
+		trapFocus={false}
+		loop={false}
+		preventScroll={false}
+		forceMount={false}
 	>
-		<slot {builder} />
-	</div>
-{:else if inTransition && $open}
-	<div
-		bind:this={el}
-		use:melt={builder}
-		in:inTransition={inTransitionConfig}
-		{...$$restProps}
-		on:m-pointerdown={dispatch}
-		on:m-pointerenter={dispatch}
-	>
-		<slot {builder} />
-	</div>
-{:else if outTransition && $open}
-	<div
-		bind:this={el}
-		use:melt={builder}
-		out:outTransition={outTransitionConfig}
-		{...$$restProps}
-		on:m-pointerdown={dispatch}
-		on:m-pointerenter={dispatch}
-	>
-		<slot {builder} />
-	</div>
-{:else if $open}
-	<div
-		bind:this={el}
-		use:melt={builder}
-		{...$$restProps}
-		on:m-pointerdown={dispatch}
-		on:m-pointerenter={dispatch}
-	>
-		<slot {builder} />
-	</div>
+		{#snippet popper({ props, wrapperProps })}
+			{@const mergedProps = mergeProps(props, {
+				style: getFloatingContentCSSVars("tooltip"),
+			})}
+			{#if child}
+				{@render child({ props: mergedProps, wrapperProps, ...contentState.snippetProps })}
+			{:else}
+				<div {...wrapperProps}>
+					<div {...mergedProps}>
+						{@render children?.()}
+					</div>
+				</div>
+			{/if}
+		{/snippet}
+	</PopperLayer>
 {/if}

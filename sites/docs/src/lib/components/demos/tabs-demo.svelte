@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Tabs } from "bits-ui";
-	import { Airplane } from "$icons/index.js";
+	import Airplane from "phosphor-svelte/lib/Airplane";
 </script>
 
 <div class="pt-6">
@@ -22,7 +22,7 @@
 				>Inbound</Tabs.Trigger
 			>
 		</Tabs.List>
-		<Tabs.Content value="outbound" class="pt-3">
+		<Tabs.Content value="outbound" class="select-none pt-3">
 			<div class="grid grid-cols-3 grid-rows-2 gap-0 p-4 pb-1">
 				<div class="text-left">
 					<h4 class="mb-2 text-[20px] font-semibold leading-none tracking-[-0.01em]">
@@ -48,7 +48,7 @@
 				</div>
 			</div>
 		</Tabs.Content>
-		<Tabs.Content value="inbound" class="pt-3">
+		<Tabs.Content value="inbound" class="select-none pt-3">
 			<div class="grid grid-cols-3 grid-rows-2 gap-0 p-4 pb-1">
 				<div class="text-left">
 					<h4 class="mb-2 text-[20px] font-semibold leading-none tracking-[-0.01em]">

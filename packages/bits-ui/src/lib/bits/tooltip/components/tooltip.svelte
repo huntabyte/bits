@@ -1,63 +1,37 @@
 <script lang="ts">
-	import { derived } from "svelte/store";
-	import { setCtx } from "../ctx.js";
-	import type { Props } from "../index.js";
+	import { box } from "svelte-toolbelt";
+	import type { TooltipRootProps } from "../types.js";
+	import { useTooltipRoot } from "../tooltip.svelte.js";
+	import FloatingLayer from "$lib/bits/utilities/floating-layer/components/floating-layer.svelte";
+	import { noop } from "$lib/internal/noop.js";
 
-	type $$Props = Props;
-
-	export let closeOnEscape: $$Props["closeOnEscape"] = undefined;
-	export let portal: $$Props["portal"] = undefined;
-	export let closeOnPointerDown: $$Props["closeOnPointerDown"] = undefined;
-	export let openDelay: $$Props["openDelay"] = undefined;
-	export let closeDelay: $$Props["closeDelay"] = undefined;
-	export let open: $$Props["open"] = undefined;
-	export let onOpenChange: $$Props["onOpenChange"] = undefined;
-	export let disableHoverableContent: $$Props["disableHoverableContent"] = undefined;
-	export let group: $$Props["group"] = undefined;
-
-	const {
-		states: { open: localOpen },
-		updateOption,
-		ids,
-	} = setCtx({
-		closeOnEscape,
-		portal,
-		closeOnPointerDown,
-		openDelay,
-		closeDelay,
-		forceVisible: true,
-		defaultOpen: open,
+	let {
+		open = $bindable(false),
+		onOpenChange = noop,
+		disabled,
+		delayDuration,
+		disableCloseOnTriggerClick,
 		disableHoverableContent,
-		group,
-		onOpenChange: ({ next }) => {
-			if (open !== next) {
-				onOpenChange?.(next);
-				open = next;
+		ignoreNonKeyboardFocus,
+		children,
+	}: TooltipRootProps = $props();
+
+	useTooltipRoot({
+		open: box.with(
+			() => open,
+			(v) => {
+				open = v;
+				onOpenChange(v);
 			}
-			return next;
-		},
-		positioning: {
-			gutter: 0,
-			offset: {
-				mainAxis: 1,
-			},
-		},
+		),
+		delayDuration: box.with(() => delayDuration),
+		disableCloseOnTriggerClick: box.with(() => disableCloseOnTriggerClick),
+		disableHoverableContent: box.with(() => disableHoverableContent),
+		ignoreNonKeyboardFocus: box.with(() => ignoreNonKeyboardFocus),
+		disabled: box.with(() => disabled),
 	});
-
-	const idValues = derived([ids.content, ids.trigger], ([$contentId, $triggerId]) => ({
-		content: $contentId,
-		trigger: $triggerId,
-	}));
-
-	$: open !== undefined && localOpen.set(open);
-
-	$: updateOption("closeOnEscape", closeOnEscape);
-	$: updateOption("portal", portal);
-	$: updateOption("closeOnPointerDown", closeOnPointerDown);
-	$: updateOption("openDelay", openDelay);
-	$: updateOption("closeDelay", closeDelay);
-	$: updateOption("group", group);
-	$: updateOption("disableHoverableContent", disableHoverableContent);
 </script>
 
-<slot ids={$idValues} />
+<FloatingLayer>
+	{@render children?.()}
+</FloatingLayer>

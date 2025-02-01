@@ -1,38 +1,34 @@
 <script lang="ts">
-	import { melt } from "@melt-ui/svelte";
-	import { getCtx } from "../ctx.js";
-	import type { CancelEvents, CancelProps } from "../index.js";
-	import { createDispatcher } from "$lib/internal/events.js";
+	import { box, mergeProps } from "svelte-toolbelt";
+	import type { AlertDialogCancelProps } from "../types.js";
+	import { useAlertDialogCancel } from "$lib/bits/dialog/dialog.svelte.js";
+	import { useId } from "$lib/internal/use-id.js";
 
-	type $$Props = CancelProps;
-	type $$Events = CancelEvents;
+	let {
+		id = useId(),
+		ref = $bindable(null),
+		children,
+		child,
+		disabled = false,
+		...restProps
+	}: AlertDialogCancelProps = $props();
 
-	export let asChild: $$Props["asChild"] = false;
-	export let el: $$Props["el"] = undefined;
+	const cancelState = useAlertDialogCancel({
+		id: box.with(() => id),
+		ref: box.with(
+			() => ref,
+			(v) => (ref = v)
+		),
+		disabled: box.with(() => Boolean(disabled)),
+	});
 
-	const {
-		elements: { close },
-		getAttrs,
-	} = getCtx();
-
-	const dispatch = createDispatcher();
-	const attrs = getAttrs("cancel");
-
-	$: builder = $close;
-	$: Object.assign(builder, attrs);
+	const mergedProps = $derived(mergeProps(restProps, cancelState.props));
 </script>
 
-{#if asChild}
-	<slot {builder} />
+{#if child}
+	{@render child({ props: mergedProps })}
 {:else}
-	<button
-		bind:this={el}
-		use:melt={builder}
-		type="button"
-		{...$$restProps}
-		on:m-click={dispatch}
-		on:m-keydown={dispatch}
-	>
-		<slot {builder} />
+	<button {...mergedProps}>
+		{@render children?.()}
 	</button>
 {/if}

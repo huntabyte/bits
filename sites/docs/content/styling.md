@@ -41,9 +41,11 @@ You can then use those data attributes like so:
 ```svelte title="src/routes/+layout.svelte"
 <script lang="ts">
 	import "../app.pcss";
+
+	let { children } = $props();
 </script>
 
-<slot />
+{@render children()}
 ```
 
 Now every `<Button.Root />` component will have the styles applied to it.
@@ -52,7 +54,9 @@ Now every `<Button.Root />` component will have the styles applied to it.
 
 If you prefer the class approach, you can simply apply your global classes to the component.
 
-#### Define global styles
+#### 1. Define global styles
+
+<br />
 
 ```css title="src/app.pcss"
 .button {
@@ -63,17 +67,23 @@ If you prefer the class approach, you can simply apply your global classes to th
 }
 ```
 
-#### Apply global styles
+#### 2. Apply global styles
+
+<br />
 
 ```svelte title="src/routes/+layout.svelte"
 <script lang="ts">
 	import "../app.pcss";
+
+	let { children } = $props();
 </script>
 
-<slot />
+{@render children()}
 ```
 
-#### Use with components
+#### 3. Use with components
+
+<br />
 
 ```svelte title="Button.svelte"
 <script lang="ts">
@@ -82,3 +92,13 @@ If you prefer the class approach, you can simply apply your global classes to th
 
 <Button.Root class="button">Click me</Button.Root>
 ```
+
+## Scoped Styles
+
+If you wish to use Svelte's scoped styles, you must use the `child` snippet for the various components that support it. This moves the underlying HTML element out of the Bits UI component scope and into the scope of your component.
+
+See the [Child Snippet](/docs/child-snippet) documentation for more information.
+
+## Style Prop
+
+Bits UI components accept a `style` prop, which can either be a string or an object of CSS properties and values. These are gracefully merged with the component's internal styles to create a single style object using the [`mergeProps`](/docs/utilities/merge-props) function.

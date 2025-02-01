@@ -1,9 +1,8 @@
 <script lang="ts">
 	import { Popover } from "bits-ui";
-	import { Code } from "$lib/components/index.js";
-	import { flyAndScale } from "$lib/utils/index.js";
+	import Code from "$lib/components/markdown/code.svelte";
 
-	export let name: string;
+	let { name }: { name: string } = $props();
 </script>
 
 <div class="flex items-center gap-1.5">
@@ -16,8 +15,6 @@
 		<Popover.Content
 			side="top"
 			sideOffset={10}
-			transition={flyAndScale}
-			transitionConfig={{ y: 8 }}
 			class="z-50 max-h-[400px] overflow-auto rounded-input border border-border bg-background p-4 shadow-popover"
 		>
 			<button class="bg-transparent"> Copy to clipboard </button>

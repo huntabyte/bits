@@ -10,6 +10,7 @@ node_modules
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vercel
+.velite
 
 ## contentlayer build output
 .contentlayer

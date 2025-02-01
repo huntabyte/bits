@@ -1,44 +1,27 @@
 <script lang="ts">
-	import { melt } from "@melt-ui/svelte";
-	import { getCtx } from "../ctx.js";
-	import type { TriggerEvents, TriggerProps } from "../index.js";
-	import { createDispatcher } from "$lib/internal/events.js";
+	import { mergeProps } from "svelte-toolbelt";
+	import type { DatePickerTriggerProps } from "../types.js";
+	import PopoverTrigger from "$lib/bits/popover/components/popover-trigger.svelte";
+	import { DATE_FIELD_INPUT_ATTR } from "$lib/bits/date-field/date-field.svelte.js";
+	import {
+		handleSegmentNavigation,
+		isSegmentNavigationKey,
+	} from "$lib/internal/date-time/field/segments.js";
 
-	type $$Props = TriggerProps;
-	type $$Events = TriggerEvents;
+	let { ref = $bindable(null), onkeydown, ...restProps }: DatePickerTriggerProps = $props();
 
-	export let asChild: $$Props["asChild"] = false;
-	export let id: $$Props["id"] = undefined;
-	export let el: $$Props["el"] = undefined;
-
-	const {
-		elements: { trigger },
-		ids,
-		getPopoverAttrs,
-	} = getCtx();
-
-	const dispatch = createDispatcher();
-	const attrs = getPopoverAttrs("trigger");
-
-	$: if (id) {
-		ids.popover.trigger.set(id);
+	function onKeydown(e: KeyboardEvent) {
+		if (isSegmentNavigationKey(e.key)) {
+			const currNode = e.currentTarget as HTMLElement;
+			const dateFieldInputNode = currNode.closest(
+				`[${DATE_FIELD_INPUT_ATTR}]`
+			) as HTMLElement;
+			if (!dateFieldInputNode) return;
+			handleSegmentNavigation(e, dateFieldInputNode);
+		}
 	}
 
-	$: builder = $trigger;
-	$: Object.assign(builder, attrs);
+	const mergedProps = $derived(mergeProps({ onkeydown }, { onkeydown: onKeydown }));
 </script>
 
-{#if asChild}
-	<slot {builder} />
-{:else}
-	<button
-		bind:this={el}
-		use:melt={builder}
-		type="button"
-		{...$$restProps}
-		on:m-click={dispatch}
-		on:m-keydown={dispatch}
-	>
-		<slot {builder} />
-	</button>
-{/if}
+<PopoverTrigger {...restProps} bind:ref data-segment="trigger" {...mergedProps} />

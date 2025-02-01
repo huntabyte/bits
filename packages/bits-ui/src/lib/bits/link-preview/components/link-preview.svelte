@@ -1,51 +1,31 @@
 <script lang="ts">
-	import { derived } from "svelte/store";
-	import { setCtx } from "../ctx.js";
-	import type { Props } from "../index.js";
-	type $$Props = Props;
+	import { box } from "svelte-toolbelt";
+	import type { LinkPreviewRootProps } from "../types.js";
+	import { useLinkPreviewRoot } from "../link-preview.svelte.js";
+	import { noop } from "$lib/internal/noop.js";
+	import { FloatingLayer } from "$lib/bits/utilities/floating-layer/index.js";
 
-	export let open: $$Props["open"] = undefined;
-	export let onOpenChange: $$Props["onOpenChange"] = undefined;
-	export let openDelay: $$Props["openDelay"] = 700;
-	export let closeDelay: $$Props["closeDelay"] = 300;
-	export let closeOnOutsideClick: $$Props["closeOnOutsideClick"] = undefined;
-	export let closeOnEscape: $$Props["closeOnEscape"] = undefined;
-	export let portal: $$Props["portal"] = undefined;
-	export let onOutsideClick: $$Props["onOutsideClick"] = undefined;
+	let {
+		open = $bindable(false),
+		onOpenChange = noop,
+		openDelay = 700,
+		closeDelay = 300,
+		children,
+	}: LinkPreviewRootProps = $props();
 
-	const {
-		states: { open: localOpen },
-		updateOption,
-		ids,
-	} = setCtx({
-		defaultOpen: open,
-		openDelay,
-		closeDelay,
-		closeOnOutsideClick,
-		closeOnEscape,
-		portal,
-		onOutsideClick,
-		onOpenChange: ({ next }) => {
-			if (open !== next) {
-				onOpenChange?.(next);
-				open = next;
+	useLinkPreviewRoot({
+		open: box.with(
+			() => open,
+			(v) => {
+				open = v;
+				onOpenChange(v);
 			}
-			return next;
-		},
+		),
+		openDelay: box.with(() => openDelay),
+		closeDelay: box.with(() => closeDelay),
 	});
-
-	const idValues = derived([ids.content, ids.trigger], ([$contentId, $triggerId]) => ({
-		content: $contentId,
-		trigger: $triggerId,
-	}));
-
-	$: open !== undefined && localOpen.set(open);
-	$: updateOption("openDelay", openDelay);
-	$: updateOption("closeDelay", closeDelay);
-	$: updateOption("closeOnOutsideClick", closeOnOutsideClick);
-	$: updateOption("closeOnEscape", closeOnEscape);
-	$: updateOption("portal", portal);
-	$: updateOption("onOutsideClick", onOutsideClick);
 </script>
 
-<slot ids={$idValues} />
+<FloatingLayer.Root>
+	{@render children?.()}
+</FloatingLayer.Root>

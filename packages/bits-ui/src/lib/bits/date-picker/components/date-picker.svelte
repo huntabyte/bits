@@ -1,174 +1,136 @@
 <script lang="ts">
-	import { derived } from "svelte/store";
-	import { setCtx } from "../ctx.js";
-	import type { Props } from "../index.js";
+	// Date Picker composes the DateField, Popover, and Calendar components
+	import { box } from "svelte-toolbelt";
+	import type { DateValue } from "@internationalized/date";
+	import { useDatePickerRoot } from "../date-picker.svelte.js";
+	import type { DatePickerRootProps } from "../types.js";
+	import { noop } from "$lib/internal/noop.js";
+	import { usePopoverRoot } from "$lib/bits/popover/popover.svelte.js";
+	import { useDateFieldRoot } from "$lib/bits/date-field/date-field.svelte.js";
+	import { FloatingLayer } from "$lib/bits/utilities/floating-layer/index.js";
+	import { getDefaultDate } from "$lib/internal/date-time/utils.js";
 
-	type $$Props = Props;
-
-	export let portal: $$Props["portal"] = undefined;
-	export let open: $$Props["open"] = undefined;
-	export let onOpenChange: $$Props["onOpenChange"] = undefined;
-	export let value: $$Props["value"] = undefined;
-	export let onValueChange: $$Props["onValueChange"] = undefined;
-	export let placeholder: $$Props["placeholder"] = undefined;
-	export let onPlaceholderChange: $$Props["onPlaceholderChange"] = undefined;
-	export let disabled: $$Props["disabled"] = undefined;
-	export let isDateUnavailable: $$Props["isDateUnavailable"] = undefined;
-	export let granularity: $$Props["granularity"] = undefined;
-	export let hideTimeZone: $$Props["hideTimeZone"] = undefined;
-	export let hourCycle: $$Props["hourCycle"] = undefined;
-	export let locale: $$Props["locale"] = undefined;
-	export let maxValue: $$Props["maxValue"] = undefined;
-	export let minValue: $$Props["minValue"] = undefined;
-	export let readonly: $$Props["readonly"] = undefined;
-	export let validationId: $$Props["validationId"] = undefined;
-	export let descriptionId: $$Props["descriptionId"] = undefined;
-	export let preventDeselect: $$Props["preventDeselect"] = undefined;
-	export let pagedNavigation: $$Props["pagedNavigation"] = undefined;
-	export let weekStartsOn: $$Props["weekStartsOn"] = undefined;
-	export let isDateDisabled: $$Props["isDateDisabled"] = undefined;
-	export let fixedWeeks: $$Props["fixedWeeks"] = undefined;
-	export let calendarLabel: $$Props["calendarLabel"] = undefined;
-	export let weekdayFormat: $$Props["weekdayFormat"] = undefined;
-	export let numberOfMonths: $$Props["numberOfMonths"] = undefined;
-	export let onOutsideClick: $$Props["onOutsideClick"] = undefined;
-
-	const {
-		states: {
-			open: localOpen,
-			value: localValue,
-			placeholder: localPlaceholder,
-			isInvalid: localIsInvalid,
-		},
-		updateOption,
-		ids,
-	} = setCtx({
-		defaultOpen: open,
-		defaultValue: value,
-		defaultPlaceholder: placeholder,
-		preventDeselect,
-		pagedNavigation,
-		weekStartsOn,
-		isDateDisabled,
-		fixedWeeks,
-		calendarLabel,
-		disabled,
-		granularity,
-		hideTimeZone,
-		hourCycle,
-		locale,
-		maxValue,
+	let {
+		open = $bindable(false),
+		onOpenChange = noop,
+		value = $bindable(),
+		onValueChange = noop,
+		placeholder = $bindable(),
+		onPlaceholderChange = noop,
+		isDateUnavailable = () => false,
+		validate = noop,
+		onInvalid = noop,
 		minValue,
-		readonly,
-		weekdayFormat,
-		numberOfMonths,
-		isDateUnavailable,
-		onOutsideClick,
-		onValueChange: ({ next }) => {
-			if (value !== next) {
-				onValueChange?.(next);
-				value = next;
+		maxValue,
+		disabled = false,
+		readonly = false,
+		granularity,
+		readonlySegments = [],
+		hourCycle,
+		locale = "en",
+		hideTimeZone = false,
+		required = false,
+		calendarLabel = "Event",
+		disableDaysOutsideMonth = true,
+		preventDeselect = false,
+		pagedNavigation = false,
+		weekStartsOn = 0,
+		weekdayFormat = "narrow",
+		isDateDisabled = () => false,
+		fixedWeeks = false,
+		numberOfMonths = 1,
+		closeOnDateSelect = true,
+		initialFocus = false,
+		errorMessageId,
+		children,
+	}: DatePickerRootProps = $props();
+
+	if (placeholder === undefined) {
+		const defaultPlaceholder = getDefaultDate({
+			granularity,
+			defaultPlaceholder: undefined,
+			defaultValue: value,
+		});
+
+		placeholder = defaultPlaceholder;
+	}
+
+	function onDateSelect() {
+		if (closeOnDateSelect) {
+			open = false;
+		}
+	}
+
+	const pickerRootState = useDatePickerRoot({
+		open: box.with(
+			() => open,
+			(v) => {
+				open = v;
+				onOpenChange(v);
 			}
-			return next;
-		},
-		onPlaceholderChange: ({ next }) => {
-			if (placeholder !== next) {
-				onPlaceholderChange?.(next);
-				placeholder = next;
+		),
+		value: box.with(
+			() => value,
+			(v) => {
+				value = v;
+				onValueChange(v);
 			}
-			return next;
-		},
-		onOpenChange: ({ next }) => {
-			if (open !== next) {
-				onOpenChange?.(next);
-				open = next;
+		),
+		placeholder: box.with(
+			() => placeholder as DateValue,
+			(v) => {
+				placeholder = v;
+				onPlaceholderChange(v as DateValue);
 			}
-			return next;
-		},
+		),
+		isDateUnavailable: box.with(() => isDateUnavailable),
+		minValue: box.with(() => minValue),
+		maxValue: box.with(() => maxValue),
+		disabled: box.with(() => disabled),
+		readonly: box.with(() => readonly),
+		granularity: box.with(() => granularity),
+		readonlySegments: box.with(() => readonlySegments),
+		hourCycle: box.with(() => hourCycle),
+		locale: box.with(() => locale),
+		hideTimeZone: box.with(() => hideTimeZone),
+		required: box.with(() => required),
+		calendarLabel: box.with(() => calendarLabel),
+		disableDaysOutsideMonth: box.with(() => disableDaysOutsideMonth),
+		preventDeselect: box.with(() => preventDeselect),
+		pagedNavigation: box.with(() => pagedNavigation),
+		weekStartsOn: box.with(() => weekStartsOn),
+		weekdayFormat: box.with(() => weekdayFormat),
+		isDateDisabled: box.with(() => isDateDisabled),
+		fixedWeeks: box.with(() => fixedWeeks),
+		numberOfMonths: box.with(() => numberOfMonths),
+		initialFocus: box.with(() => initialFocus),
+		onDateSelect: box.with(() => onDateSelect),
 	});
 
-	const idValues = derived(
-		[
-			ids.dateField.day,
-			ids.dateField.description,
-			ids.dateField.dayPeriod,
-			ids.dateField.field,
-			ids.dateField.hour,
-			ids.dateField.minute,
-			ids.dateField.month,
-			ids.dateField.second,
-			ids.dateField.year,
-			ids.dateField.validation,
-			ids.dateField.label,
-			ids.dateField.timeZoneName,
-			ids.calendar.calendar,
-			ids.popover.content,
-			ids.popover.trigger,
-		],
-		([
-			$dayId,
-			$descriptionId,
-			$dayPeriodId,
-			$fieldId,
-			$hourId,
-			$minuteId,
-			$monthId,
-			$secondId,
-			$yearId,
-			$validationId,
-			$labelId,
-			$timeZoneNameId,
-			$calendarId,
-			$contentId,
-		]) => ({
-			day: $dayId,
-			description: $descriptionId,
-			dayPeriod: $dayPeriodId,
-			field: $fieldId,
-			hour: $hourId,
-			minute: $minuteId,
-			month: $monthId,
-			second: $secondId,
-			year: $yearId,
-			validation: $validationId,
-			label: $labelId,
-			timeZoneName: $timeZoneNameId,
-			calendar: $calendarId,
-			content: $contentId,
-		})
-	);
+	usePopoverRoot({
+		open: pickerRootState.props.open,
+	});
 
-	$: if (validationId) {
-		ids.dateField.validation.set(validationId);
-	}
-
-	$: if (descriptionId) {
-		ids.dateField.description.set(descriptionId);
-	}
-
-	$: value !== $localValue && localValue.set(value);
-	$: placeholder !== undefined && localPlaceholder.set(placeholder);
-	$: open !== undefined && localOpen.set(open);
-
-	$: updateOption("disabled", disabled);
-	$: updateOption("isDateUnavailable", isDateUnavailable);
-	$: updateOption("granularity", granularity);
-	$: updateOption("hideTimeZone", hideTimeZone);
-	$: updateOption("hourCycle", hourCycle);
-	$: updateOption("locale", locale);
-	$: updateOption("maxValue", maxValue);
-	$: updateOption("minValue", minValue);
-	$: updateOption("readonly", readonly);
-	$: updateOption("fixedWeeks", fixedWeeks);
-	$: updateOption("preventDeselect", preventDeselect);
-	$: updateOption("pagedNavigation", pagedNavigation);
-	$: updateOption("weekStartsOn", weekStartsOn);
-	$: updateOption("isDateDisabled", isDateDisabled);
-	$: updateOption("calendarLabel", calendarLabel);
-	$: updateOption("weekdayFormat", weekdayFormat);
-	$: updateOption("numberOfMonths", numberOfMonths);
-	$: updateOption("onOutsideClick", onOutsideClick);
-	$: updateOption("portal", portal);
+	useDateFieldRoot({
+		value: pickerRootState.props.value,
+		disabled: pickerRootState.props.disabled,
+		readonly: pickerRootState.props.readonly,
+		readonlySegments: pickerRootState.props.readonlySegments,
+		validate: box.with(() => validate),
+		onInvalid: box.with(() => onInvalid),
+		minValue: pickerRootState.props.minValue,
+		maxValue: pickerRootState.props.maxValue,
+		granularity: pickerRootState.props.granularity,
+		hideTimeZone: pickerRootState.props.hideTimeZone,
+		hourCycle: pickerRootState.props.hourCycle,
+		locale: pickerRootState.props.locale,
+		required: pickerRootState.props.required,
+		placeholder: pickerRootState.props.placeholder,
+		errorMessageId: box.with(() => errorMessageId),
+		isInvalidProp: box.with(() => undefined),
+	});
 </script>
 
-<slot ids={$idValues} isInvalid={$localIsInvalid} />
+<FloatingLayer.Root>
+	{@render children?.()}
+</FloatingLayer.Root>

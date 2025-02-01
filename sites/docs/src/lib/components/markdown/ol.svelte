@@ -1,10 +1,10 @@
 <script lang="ts">
+	import type { HTMLAttributes } from "svelte/elements";
 	import { cn } from "$lib/utils/index.js";
 
-	let className: string | undefined | null = undefined;
-	export { className as class };
+	let { class: className, children, ...restProps }: HTMLAttributes<HTMLOListElement> = $props();
 </script>
 
-<ol class={cn("my-6 ml-6 list-decimal", className)} {...$$restProps}>
-	<slot />
+<ol class={cn("my-6 ml-6 list-decimal", className)} {...restProps}>
+	{@render children?.()}
 </ol>

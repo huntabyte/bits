@@ -1,26 +1,9 @@
 <script lang="ts">
-	import { melt } from "@melt-ui/svelte";
-	import type { InputProps } from "../index.js";
-	import { getCtx } from "../ctx.js";
+	import { useRadioGroupInput } from "../radio-group.svelte.js";
 
-	type $$Props = InputProps;
-
-	export let asChild: $$Props["asChild"] = false;
-	export let el: $$Props["el"] = undefined;
-
-	const {
-		elements: { hiddenInput },
-		getAttrs,
-	} = getCtx();
-
-	const attrs = getAttrs("input");
-
-	$: builder = $hiddenInput;
-	$: Object.assign(builder, attrs);
+	const inputState = useRadioGroupInput();
 </script>
 
-{#if asChild}
-	<slot {builder} />
-{:else}
-	<input bind:this={el} use:melt={builder} {...$$restProps} />
+{#if inputState.shouldRender}
+	<input {...inputState.props} />
 {/if}

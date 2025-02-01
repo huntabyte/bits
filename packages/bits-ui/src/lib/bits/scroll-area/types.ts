@@ -1,26 +1,67 @@
-import type { CreateScrollAreaProps as MeltScrollAreaProps } from "@melt-ui/svelte";
-import type { DOMElement, Expand, HTMLDivAttributes } from "$lib/internal/types.js";
+import type { BitsPrimitiveDivAttributes } from "$lib/shared/attributes.js";
+import type { Direction, Orientation, WithChild, Without } from "$lib/shared/index.js";
 
-export type ScrollAreaPropsWithoutHTML = Expand<Omit<MeltScrollAreaProps, "ids">> &
-	DOMElement<HTMLDivElement>;
+export type ScrollAreaType = "hover" | "scroll" | "auto" | "always";
 
-type BaseDivProps = DOMElement<HTMLDivElement>;
+export type ScrollAreaRootPropsWithoutHTML = WithChild<{
+	/**
+	 * The type of scroll area to render.
+	 *
+	 * @defaultValue "hover"
+	 */
+	type?: ScrollAreaType;
 
-export type ScrollAreaScrollbarPropsWithoutHTML = BaseDivProps & {
-	orientation: "horizontal" | "vertical";
+	/**
+	 * The reading direction of the application.
+	 */
+	dir?: Direction;
+
+	/**
+	 * The amount of time in milliseconds to delay before hiding the scrollbars
+	 * after leaving the scroll area or stopping scrolling.
+	 *
+	 * @defaultValue 600
+	 */
+	scrollHideDelay?: number;
+}>;
+
+export type ScrollAreaRootProps = ScrollAreaRootPropsWithoutHTML &
+	Without<BitsPrimitiveDivAttributes, ScrollAreaRootPropsWithoutHTML>;
+
+export type ScrollAreaViewportPropsWithoutHTML = Omit<WithChild, "child">;
+
+export type ScrollAreaViewportProps = ScrollAreaViewportPropsWithoutHTML &
+	Without<BitsPrimitiveDivAttributes, ScrollAreaViewportPropsWithoutHTML>;
+
+export type ScrollAreaScrollbarPropsWithoutHTML = WithChild<{
+	orientation: Orientation;
+
+	/**
+	 * Whether to forcefully mount the component. Useful when working with
+	 * external animation/transition libraries.
+	 */
+	forceMount?: boolean;
+}>;
+
+export type ScrollAreaScrollbarProps = ScrollAreaScrollbarPropsWithoutHTML &
+	Without<BitsPrimitiveDivAttributes, ScrollAreaScrollbarPropsWithoutHTML>;
+
+export type ScrollAreaThumbPropsWithoutHTML = WithChild<{
+	/**
+	 * Whether to forcefully mount the component. Useful when working with
+	 * external animation/transition libraries.
+	 */
+	forceMount?: boolean;
+}>;
+
+export type ScrollAreaThumbProps = ScrollAreaThumbPropsWithoutHTML &
+	Without<BitsPrimitiveDivAttributes, ScrollAreaThumbPropsWithoutHTML>;
+
+export type ScrollAreaCornerPropsWithoutHTML = WithChild;
+
+export type ScrollAreaCornerProps = ScrollAreaCornerPropsWithoutHTML &
+	Without<BitsPrimitiveDivAttributes, ScrollAreaCornerPropsWithoutHTML>;
+
+export type _ScrollbarStubProps = Omit<ScrollAreaScrollbarProps, "orientation" | "ref" | "id"> & {
+	id: string;
 };
-
-export type ScrollAreaThumbPropsWithoutHTML = BaseDivProps;
-
-export type ScrollAreaViewportPropsWithoutHTML = BaseDivProps;
-export type ScrollAreaContentPropsWithoutHTML = BaseDivProps;
-export type ScrollAreaCornerPropsWithoutHTML = BaseDivProps;
-
-//
-
-export type ScrollAreaProps = ScrollAreaPropsWithoutHTML & HTMLDivAttributes;
-export type ScrollAreaViewportProps = ScrollAreaViewportPropsWithoutHTML & HTMLDivAttributes;
-export type ScrollAreaContentProps = ScrollAreaContentPropsWithoutHTML & HTMLDivAttributes;
-export type ScrollAreaScrollbarProps = ScrollAreaScrollbarPropsWithoutHTML & HTMLDivAttributes;
-export type ScrollAreaThumbProps = ScrollAreaThumbPropsWithoutHTML & HTMLDivAttributes;
-export type ScrollAreaCornerProps = ScrollAreaCornerPropsWithoutHTML & HTMLDivAttributes;

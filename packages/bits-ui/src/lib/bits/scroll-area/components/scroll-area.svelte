@@ -1,51 +1,38 @@
 <script lang="ts">
-	import { melt } from "@melt-ui/svelte";
-	import { setCtx } from "../ctx.js";
-	import type { Props } from "../index.js";
-	import { styleToString } from "$lib/internal/style.js";
+	import { box, mergeProps } from "svelte-toolbelt";
+	import type { ScrollAreaRootProps } from "../types.js";
+	import { useScrollAreaRoot } from "../scroll-area.svelte.js";
+	import { useId } from "$lib/internal/use-id.js";
 
-	type $$Props = Props;
+	let {
+		ref = $bindable(null),
+		id = useId(),
+		type = "hover",
+		dir = "ltr",
+		scrollHideDelay = 600,
+		children,
+		child,
+		...restProps
+	}: ScrollAreaRootProps = $props();
 
-	export let type: $$Props["type"] = "hover";
-	export let dir: $$Props["dir"] = "ltr";
-	export let hideDelay: $$Props["hideDelay"] = 600;
-	export let asChild: $$Props["asChild"] = false;
-	export let el: $$Props["el"] = undefined;
-
-	const {
-		elements: { root },
-		updateOption,
-		getAttrs,
-	} = setCtx({
-		type,
-		dir,
-		hideDelay,
+	const rootState = useScrollAreaRoot({
+		type: box.with(() => type),
+		dir: box.with(() => dir),
+		scrollHideDelay: box.with(() => scrollHideDelay),
+		id: box.with(() => id),
+		ref: box.with(
+			() => ref,
+			(v) => (ref = v)
+		),
 	});
 
-	$: builder = $root;
-
-	$: updateOption("type", type);
-	$: updateOption("dir", dir);
-	$: updateOption("hideDelay", hideDelay);
-
-	const bitsAttrs = getAttrs("root");
-	const style = styleToString({
-		overflow: "hidden",
-	});
-
-	$: attrs = {
-		...$$restProps,
-		...bitsAttrs,
-		style,
-	};
-
-	$: Object.assign(builder, attrs);
+	const mergedProps = $derived(mergeProps(restProps, rootState.props));
 </script>
 
-{#if asChild}
-	<slot {builder} />
+{#if child}
+	{@render child({ props: mergedProps })}
 {:else}
-	<div bind:this={el} use:melt={builder} {...attrs}>
-		<slot {builder} />
+	<div {...mergedProps}>
+		{@render children?.()}
 	</div>
 {/if}

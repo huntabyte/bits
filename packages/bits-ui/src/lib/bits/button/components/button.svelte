@@ -1,64 +1,26 @@
 <script lang="ts">
-	import type { Events, Props } from "../index.js";
-	import { builderActions, getAttrs } from "$lib/helpers/index.js";
+	import type { ButtonRootProps } from "../types.js";
 
-	type $$Props = Props;
-	type $$Events = Events;
-	export let href: $$Props["href"] = undefined;
-	export let type: $$Props["type"] = undefined;
-	export let builders: $$Props["builders"] = [];
-	export let el: $$Props["el"] = undefined;
-	const attrs = {
-		"data-button-root": "",
-	};
+	let {
+		href,
+		type,
+		children,
+		disabled = false,
+		ref = $bindable(),
+		...restProps
+	}: ButtonRootProps = $props();
 </script>
 
-{#if builders && builders.length}
-	<!-- svelte-ignore a11y-no-static-element-interactions a11y_no_static_element_interactions -->
-	<svelte:element
-		this={href ? "a" : "button"}
-		bind:this={el}
-		type={href ? undefined : type}
-		{href}
-		on:click
-		on:change
-		on:keydown
-		on:keyup
-		on:mouseenter
-		on:mouseleave
-		on:mousedown
-		on:pointerdown
-		on:mouseup
-		on:pointerup
-		tabindex="0"
-		use:builderActions={{ builders }}
-		{...getAttrs(builders)}
-		{...$$restProps}
-		{...attrs}
-	>
-		<slot />
-	</svelte:element>
-{:else}
-	<!-- svelte-ignore a11y-no-static-element-interactions a11y_no_static_element_interactions -->
-	<svelte:element
-		this={href ? "a" : "button"}
-		bind:this={el}
-		type={href ? undefined : type}
-		{href}
-		on:click
-		on:change
-		on:keydown
-		on:keyup
-		on:mouseenter
-		on:mouseleave
-		on:mousedown
-		on:pointerdown
-		on:mouseup
-		on:pointerup
-		tabindex="0"
-		{...$$restProps}
-		{...attrs}
-	>
-		<slot />
-	</svelte:element>
-{/if}
+<svelte:element
+	this={href ? "a" : "button"}
+	type={href ? undefined : type}
+	href={href && !disabled ? href : undefined}
+	disabled={href ? undefined : disabled}
+	aria-disabled={href ? disabled : undefined}
+	role={href && disabled ? "link" : undefined}
+	tabindex={href && disabled ? -1 : 0}
+	bind:this={ref}
+	{...restProps}
+>
+	{@render children?.()}
+</svelte:element>

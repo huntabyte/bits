@@ -17,3 +17,4 @@ export const CHECKED = "checked";
 export const UNCHECKED = "unchecked";
 export const ON = "on";
 export const OFF = "off";
+export const SNIPPET = "Snippet";

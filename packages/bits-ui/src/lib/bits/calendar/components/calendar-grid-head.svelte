@@ -1,23 +1,32 @@
 <script lang="ts">
-	import { getCtx } from "../ctx.js";
-	import type { GridHeadProps } from "../index.js";
+	import { box, mergeProps } from "svelte-toolbelt";
+	import { useCalendarGridHead } from "../calendar.svelte.js";
+	import type { CalendarGridHeadProps } from "../types.js";
+	import { useId } from "$lib/internal/use-id.js";
 
-	type $$Props = GridHeadProps;
-	export let asChild: $$Props["asChild"] = false;
-	export let el: $$Props["el"] = undefined;
+	let {
+		children,
+		child,
+		ref = $bindable(null),
+		id = useId(),
+		...restProps
+	}: CalendarGridHeadProps = $props();
 
-	const { getCalendarAttrs } = getCtx();
+	const gridHeadState = useCalendarGridHead({
+		id: box.with(() => id),
+		ref: box.with(
+			() => ref,
+			(v) => (ref = v)
+		),
+	});
 
-	const attrs = {
-		...getCalendarAttrs("grid-head"),
-		"aria-hidden": true,
-	};
+	const mergedProps = $derived(mergeProps(restProps, gridHeadState.props));
 </script>
 
-{#if asChild}
-	<slot {attrs} />
+{#if child}
+	{@render child({ props: mergedProps })}
 {:else}
-	<thead bind:this={el} {...$$restProps} {...attrs}>
-		<slot {attrs} />
+	<thead {...mergedProps}>
+		{@render children?.()}
 	</thead>
 {/if}

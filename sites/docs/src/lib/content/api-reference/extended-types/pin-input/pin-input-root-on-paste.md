@@ -1,0 +1,3 @@
+```ts
+(pastedText: string) => string;
+```

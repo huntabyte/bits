@@ -1,58 +1,84 @@
-import type { HTMLButtonAttributes, HTMLInputAttributes } from "svelte/elements";
+import type { OnChangeFn, WithChild, Without } from "$lib/internal/types.js";
+import type { Orientation } from "$lib/index.js";
 import type {
-	RadioGroupItemProps as MeltRadioGroupItemProps,
-	CreateRadioGroupProps as MeltRadioGroupProps,
-} from "@melt-ui/svelte";
-import type {
-	DOMElement,
-	Expand,
-	HTMLDivAttributes,
-	ObjectVariation,
-	OmitValue,
-	OnChangeFn,
-} from "$lib/internal/index.js";
-import type { CustomEventHandler } from "$lib/index.js";
+	BitsPrimitiveButtonAttributes,
+	BitsPrimitiveDivAttributes,
+} from "$lib/shared/attributes.js";
 
-export type RadioGroupPropsWithoutHTML = Expand<
-	OmitValue<MeltRadioGroupProps> & {
+export type RadioGroupRootPropsWithoutHTML = WithChild<{
+	/**
+	 * The orientation of the radio group. Used to determine
+	 * how keyboard navigation should work.
+	 *
+	 * @defaultValue "vertical"
+	 */
+	orientation?: Orientation;
+
+	/**
+	 * Whether to loop around the radio items when navigating
+	 * with the keyboard.
+	 *
+	 * @defaultValue true
+	 */
+	loop?: boolean;
+
+	/**
+	 * The value of the selected radio item.
+	 *
+	 * @defaultValue ""
+	 */
+	value?: string;
+
+	/**
+	 * The callback to call when the selected radio item changes.
+	 */
+	onValueChange?: OnChangeFn<string>;
+
+	/**
+	 * The name to apply to the radio group's input element for
+	 * form submission. If not provided, a hidden input will not
+	 * be rendered and the radio group will not be part of a form.
+	 *
+	 * @defaultValue undefined
+	 */
+	name?: string;
+
+	/**
+	 * Whether the radio group is disabled.
+	 *
+	 * @defaultValue false
+	 */
+	disabled?: boolean;
+
+	/**
+	 * Whether the radio group is required for form submission.
+	 * If `true`, ensure you provide a `name` prop so the hidden
+	 * input is rendered.
+	 */
+	required?: boolean;
+}>;
+
+export type RadioGroupRootProps = RadioGroupRootPropsWithoutHTML &
+	Without<BitsPrimitiveDivAttributes, RadioGroupRootPropsWithoutHTML>;
+
+export type RadioGroupItemSnippetProps = { checked: boolean };
+
+export type RadioGroupItemPropsWithoutHTML = WithChild<
+	{
 		/**
-		 * The value of the radio group.
-		 * You can bind this to a value to programmatically control the value.
+		 * The value of the radio item.
+		 */
+		value: string;
+
+		/**
+		 * Whether the radio item is disabled.
 		 *
-		 * @defaultValue undefined
+		 * @defaultValue false
 		 */
-
-		value?: (MeltRadioGroupProps["defaultValue"] & {}) | undefined;
-
-		/**
-		 * A callback function called when the value changes.
-		 */
-
-		onValueChange?: OnChangeFn<MeltRadioGroupProps["defaultValue"] & {}> | undefined;
-	} & DOMElement
+		disabled?: boolean | null | undefined;
+	},
+	RadioGroupItemSnippetProps
 >;
 
-export type RadioGroupInputPropsWithoutHTML = DOMElement<HTMLInputElement>;
-
-export type RadioGroupItemPropsWithoutHTML = Expand<
-	ObjectVariation<MeltRadioGroupItemProps> & DOMElement<HTMLButtonElement>
->;
-
-export type RadioGroupItemIndicatorPropsWithoutHTML = DOMElement;
-
-//
-
-export type RadioGroupProps = RadioGroupPropsWithoutHTML & HTMLDivAttributes;
-
-export type RadioGroupInputProps = RadioGroupInputPropsWithoutHTML & HTMLInputAttributes;
-
-export type RadioGroupItemProps = RadioGroupItemPropsWithoutHTML & HTMLButtonAttributes;
-
-export type RadioGroupItemIndicatorProps = RadioGroupItemIndicatorPropsWithoutHTML &
-	HTMLDivAttributes;
-
-export type RadioGroupItemEvents<T extends Element = HTMLButtonElement> = {
-	click: CustomEventHandler<MouseEvent, T>;
-	keydown: CustomEventHandler<KeyboardEvent, T>;
-	focus: CustomEventHandler<FocusEvent, T>;
-};
+export type RadioGroupItemProps = RadioGroupItemPropsWithoutHTML &
+	Without<BitsPrimitiveButtonAttributes, RadioGroupItemPropsWithoutHTML>;

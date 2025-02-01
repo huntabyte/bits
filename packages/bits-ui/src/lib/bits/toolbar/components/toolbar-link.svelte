@@ -1,33 +1,33 @@
 <script lang="ts">
-	import { melt } from "@melt-ui/svelte";
-	import { getCtx } from "../ctx.js";
-	import type { LinkEvents, LinkProps } from "../index.js";
-	import { createDispatcher } from "$lib/internal/events.js";
+	import { box, mergeProps } from "svelte-toolbelt";
+	import { useToolbarLink } from "../toolbar.svelte.js";
+	import type { ToolbarLinkProps } from "../types.js";
+	import { useId } from "$lib/internal/use-id.js";
 
-	type $$Props = LinkProps;
-	type $$Events = LinkEvents;
+	let {
+		children,
+		href,
+		child,
+		ref = $bindable(null),
+		id = useId(),
+		...restProps
+	}: ToolbarLinkProps = $props();
 
-	export let asChild: $$Props["asChild"] = false;
-	export let el: $$Props["el"] = undefined;
+	const linkState = useToolbarLink({
+		id: box.with(() => id),
+		ref: box.with(
+			() => ref,
+			(v) => (ref = v)
+		),
+	});
 
-	const {
-		elements: { link },
-		getAttrs,
-	} = getCtx();
-
-	const dispatch = createDispatcher();
-	const attrs = getAttrs("link");
-
-	$: builder = $link;
-	$: Object.assign(builder, attrs);
+	const mergedProps = $derived(mergeProps(restProps, linkState.props));
 </script>
 
-{#if asChild}
-	<slot {builder} />
+{#if child}
+	{@render child({ props: mergedProps })}
 {:else}
-	<!-- svelte-ignore a11y-no-static-element-interactions a11y_no_static_element_interactions -->
-	<!-- svelte-ignore a11y-missing-attribute a11y_missing_attribute -->
-	<a bind:this={el} use:melt={builder} {...$$restProps} on:click on:m-keydown={dispatch}>
-		<slot {builder} />
+	<a {href} {...mergedProps}>
+		{@render children?.()}
 	</a>
 {/if}

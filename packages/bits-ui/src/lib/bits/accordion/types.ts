@@ -1,74 +1,147 @@
-import type { HTMLButtonAttributes } from "svelte/elements";
 import type {
-	AccordionHeadingProps as MeltAccordionHeadingProps,
-	AccordionItemProps as MeltAccordionItemProps,
-	CreateAccordionProps as MeltAccordionProps,
-} from "@melt-ui/svelte";
-import type { CustomEventHandler } from "$lib/index.js";
-import type {
-	DOMElement,
-	Expand,
-	HTMLDivAttributes,
-	ObjectVariation,
-	OmitForceVisible,
-	OmitValue,
 	OnChangeFn,
-	Transition,
-	TransitionProps,
-} from "$lib/internal/index.js";
+	WithChild,
+	WithChildNoChildrenSnippetProps,
+	Without,
+} from "$lib/internal/types.js";
+import type {
+	BitsPrimitiveButtonAttributes,
+	BitsPrimitiveDivAttributes,
+} from "$lib/shared/attributes.js";
+import type { Orientation } from "$lib/shared/index.js";
 
-export type AccordionPropsWithoutHTML<Multiple extends boolean> = Expand<
-	OmitValue<OmitForceVisible<MeltAccordionProps<Multiple>>> & {
-		/**
-		 * The value of the accordion.
-		 * You can bind this to a value to programmatically control the open state.
-		 */
-		value?: MeltAccordionProps<Multiple>["defaultValue"] | undefined;
+export type BaseAccordionRootPropsWithoutHTML = {
+	/**
+	 * Whether the accordion is disabled or not.
+	 *
+	 * @defaultValue false
+	 */
+	disabled?: boolean;
 
-		/**
-		 * A callback function called when the value changes.
-		 */
-		onValueChange?: OnChangeFn<MeltAccordionProps<Multiple>["defaultValue"]> | undefined;
-	} & DOMElement
->;
+	/**
+	 * Whether to loop through the accordion items when navigating
+	 * with the arrow keys.
+	 *
+	 * @defaultValue true
+	 */
+	loop?: boolean;
 
-export type AccordionItemPropsWithoutHTML = Expand<
-	ObjectVariation<MeltAccordionItemProps> & DOMElement
->;
+	/**
+	 * The orientation of the accordion.
+	 *
+	 * @defaultValue "vertical"
+	 */
+	orientation?: Orientation;
+};
 
-export type AccordionHeaderPropsWithoutHTML = Expand<
+export type AccordionRootSinglePropsWithoutHTML = BaseAccordionRootPropsWithoutHTML & {
+	/**
+	 * The type of accordion. If set to `'multiple'`, the accordion will
+	 * allow multiple items to be open at the same time. If set to
+	 * `'single'`, the accordion will only allow a single item to be open.
+	 *
+	 * @required
+	 */
+	type: "single";
+
+	/**
+	 * The value of the currently open accordion item.
+	 *
+	 * @bindable
+	 * @defaultValue ""
+	 */
+	value?: string;
+
+	/**
+	 * A callback function called when the value changes.
+	 */
+	onValueChange?: OnChangeFn<string>;
+};
+
+export type AccordionRootMultiplePropsWithoutHTML = BaseAccordionRootPropsWithoutHTML & {
+	/**
+	 * The type of accordion. If set to `'multiple'`, the accordion will
+	 * allow multiple items to be open at the same time. If set to
+	 * `'single'`, the accordion will only allow a single item to be open.
+	 *
+	 * @required
+	 */
+	type: "multiple";
+
+	/**
+	 * The value of the currently open accordion item.
+	 *
+	 * @bindable
+	 * @defaultValue []
+	 */
+	value?: string[];
+
+	/**
+	 * A callback function called when the value changes.
+	 */
+	onValueChange?: OnChangeFn<string[]>;
+};
+
+export type AccordionRootPropsWithoutHTML =
+	| WithChild<AccordionRootSinglePropsWithoutHTML>
+	| WithChild<AccordionRootMultiplePropsWithoutHTML>;
+
+export type AccordionRootProps = AccordionRootPropsWithoutHTML &
+	Without<BitsPrimitiveDivAttributes, AccordionRootPropsWithoutHTML>;
+
+export type AccordionTriggerPropsWithoutHTML = WithChild;
+
+export type AccordionTriggerProps = AccordionTriggerPropsWithoutHTML &
+	Without<BitsPrimitiveButtonAttributes, AccordionTriggerPropsWithoutHTML>;
+
+export type AccordionContentSnippetProps = {
+	/**
+	 * Whether the accordion content is active/open or not.
+	 */
+	open: boolean;
+};
+
+export type AccordionContentPropsWithoutHTML = WithChildNoChildrenSnippetProps<
 	{
 		/**
-		 * The heading level of the accordion header.
+		 * Whether to forcefully mount the content, regardless of the open state.
+		 * This is useful if you want to use Svelte transitions for the content.
+		 *
+		 * @defaultValue `true`
 		 */
-		level?: ObjectVariation<MeltAccordionHeadingProps>["level"] | undefined;
-	} & DOMElement
+		forceMount?: boolean;
+	},
+	AccordionContentSnippetProps
 >;
 
-export type AccordionTriggerPropsWithoutHTML = DOMElement<HTMLButtonElement>;
+export type AccordionContentProps = AccordionContentPropsWithoutHTML &
+	Without<BitsPrimitiveDivAttributes, AccordionContentPropsWithoutHTML>;
 
-export type AccordionContentPropsWithoutHTML<
-	T extends Transition = Transition,
-	In extends Transition = Transition,
-	Out extends Transition = Transition,
-> = Expand<TransitionProps<T, In, Out> & DOMElement>;
+export type AccordionItemPropsWithoutHTML = WithChild<{
+	/**
+	 * The value of the accordion item. This is used to identify if the item is open or closed.
+	 * If not provided, a unique ID will be generated for this value.
+	 */
+	value?: string;
 
-export type AccordionProps<Multiple extends boolean> = AccordionPropsWithoutHTML<Multiple> &
-	Omit<HTMLDivAttributes, "type">;
+	/**
+	 * Whether the accordion item is disabled, which prevents users from interacting with it.
+	 *
+	 * @defaultValue `false`
+	 */
+	disabled?: boolean;
+}>;
 
-export type AccordionItemProps = AccordionItemPropsWithoutHTML & HTMLDivAttributes;
+export type AccordionItemProps = AccordionItemPropsWithoutHTML & BitsPrimitiveDivAttributes;
 
-export type AccordionHeaderProps = AccordionHeaderPropsWithoutHTML & HTMLDivAttributes;
+export type AccordionHeaderPropsWithoutHTML = WithChild<{
+	/**
+	 * The level of the accordion header, applied to the element's `aria-level` attribute.
+	 * This is used to indicate the hierarchical relationship between the accordion items.
+	 *
+	 * @defaultValue `3`
+	 */
+	level?: 1 | 2 | 3 | 4 | 5 | 6;
+}>;
 
-export type AccordionTriggerProps = AccordionTriggerPropsWithoutHTML & HTMLButtonAttributes;
-
-export type AccordionContentProps<
-	T extends Transition = Transition,
-	In extends Transition = Transition,
-	Out extends Transition = Transition,
-> = AccordionContentPropsWithoutHTML<T, In, Out> & HTMLDivAttributes;
-
-export type AccordionTriggerEvents = {
-	click: CustomEventHandler<MouseEvent, HTMLButtonElement>;
-	keydown: CustomEventHandler<KeyboardEvent, HTMLButtonElement>;
-};
+export type AccordionHeaderProps = AccordionHeaderPropsWithoutHTML & BitsPrimitiveDivAttributes;

@@ -1,24 +1,32 @@
 <script lang="ts">
-	import { melt } from "@melt-ui/svelte";
-	import { getCtx } from "../ctx.js";
-	import type { TickProps } from "../index.js";
+	import { box, mergeProps } from "svelte-toolbelt";
+	import type { SliderTickProps } from "../types.js";
+	import { useSliderTick } from "../slider.svelte.js";
+	import { useId } from "$lib/internal/use-id.js";
 
-	type $$Props = TickProps;
+	let {
+		children,
+		child,
+		ref = $bindable(null),
+		id = useId(),
+		index,
+		...restProps
+	}: SliderTickProps = $props();
 
-	export let asChild: $$Props["asChild"] = false;
-	export let el: $$Props["el"] = undefined;
-	export let tick: $$Props["tick"];
+	const tickState = useSliderTick({
+		id: box.with(() => id),
+		ref: box.with(
+			() => ref,
+			(v) => (ref = v)
+		),
+		index: box.with(() => index),
+	});
 
-	const { getAttrs } = getCtx();
-
-	const attrs = getAttrs("tick");
-
-	$: builder = tick;
-	$: Object.assign(builder, attrs);
+	const mergedProps = $derived(mergeProps(restProps, tickState.props));
 </script>
 
-{#if asChild}
-	<slot {builder} />
+{#if child}
+	{@render child({ props: mergedProps })}
 {:else}
-	<span bind:this={el} use:melt={builder} {...$$restProps}></span>
+	<span {...mergedProps}>{@render children?.()}</span>
 {/if}

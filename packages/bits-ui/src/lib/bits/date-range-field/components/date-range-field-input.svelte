@@ -1,39 +1,41 @@
 <script lang="ts">
-	import { melt } from "@melt-ui/svelte";
-	import { getCtx } from "../ctx.js";
-	import type { InputProps } from "../index.js";
+	import { box, mergeProps } from "svelte-toolbelt";
+	import type { DateRangeFieldInputProps } from "../types.js";
+	import { useDateRangeFieldInput } from "../date-range-field.svelte.js";
+	import { useId } from "$lib/internal/use-id.js";
+	import DateFieldHiddenInput from "$lib/bits/date-field/components/date-field-hidden-input.svelte";
 
-	type $$Props = InputProps;
+	let {
+		id = useId(),
+		ref = $bindable(null),
+		name = "",
+		child,
+		children,
+		type,
+		...restProps
+	}: DateRangeFieldInputProps = $props();
 
-	export let asChild: $$Props["asChild"] = false;
-	export let id: $$Props["id"] = undefined;
-	export let el: $$Props["el"] = undefined;
+	const inputState = useDateRangeFieldInput(
+		{
+			id: box.with(() => id),
+			ref: box.with(
+				() => ref,
+				(v) => (ref = v)
+			),
+			name: box.with(() => name),
+		},
+		type
+	);
 
-	const {
-		elements: { field },
-		states: { segmentContents },
-		ids,
-		getAttrs,
-	} = getCtx();
-
-	$: if (id) {
-		ids.field.field.set(id);
-	}
-
-	const attrs = getAttrs("input");
-
-	$: builder = $field;
-	$: Object.assign(builder, attrs);
-	$: segments = {
-		start: $segmentContents.start,
-		end: $segmentContents.end,
-	};
+	const mergedProps = $derived(mergeProps(restProps, inputState.props, { role: "presentation" }));
 </script>
 
-{#if asChild}
-	<slot {builder} {segments} />
+{#if child}
+	{@render child({ props: mergedProps, segments: inputState.root.segmentContents })}
 {:else}
-	<div bind:this={el} use:melt={builder} {...$$restProps}>
-		<slot {builder} {segments} />
+	<div {...mergedProps}>
+		{@render children?.({ segments: inputState.root.segmentContents })}
 	</div>
 {/if}
+
+<DateFieldHiddenInput />

@@ -3,11 +3,12 @@
 	import { mode, toggleMode } from "mode-watcher";
 	import { scale } from "svelte/transition";
 	import { cubicOut } from "svelte/easing";
-	import { Moon, Sun } from "$icons/index.js";
+	import Moon from "phosphor-svelte/lib/Moon";
+	import Sun from "phosphor-svelte/lib/Sun";
 </script>
 
 <Button.Root
-	on:click={toggleMode}
+	onclick={toggleMode}
 	role="switch"
 	aria-label="Light Switch"
 	aria-checked={$mode === "light"}

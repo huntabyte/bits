@@ -1,0 +1,3 @@
+```ts
+"increase-width" | "none";
+```

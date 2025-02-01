@@ -10,6 +10,9 @@ export default defineConfig({
 			strict: false,
 		},
 	},
+	optimizeDeps: {
+		exclude: ["bits-ui"],
+	},
 	resolve: {
 		alias: [
 			{

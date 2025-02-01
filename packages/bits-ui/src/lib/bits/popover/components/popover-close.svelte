@@ -1,38 +1,31 @@
 <script lang="ts">
-	import { melt } from "@melt-ui/svelte";
-	import { getCtx } from "../ctx.js";
-	import type { CloseEvents, CloseProps } from "../index.js";
-	import { createDispatcher } from "$lib/internal/events.js";
+	import { box, mergeProps } from "svelte-toolbelt";
+	import type { PopoverCloseProps } from "../types.js";
+	import { usePopoverClose } from "../popover.svelte.js";
+	import { useId } from "$lib/internal/use-id.js";
 
-	type $$Props = CloseProps;
-	type $$Events = CloseEvents;
+	let {
+		child,
+		children,
+		id = useId(),
+		ref = $bindable(null),
+		...restProps
+	}: PopoverCloseProps = $props();
 
-	export let asChild: $$Props["asChild"] = false;
-	export let el: $$Props["el"] = undefined;
-
-	const {
-		elements: { close },
-		getAttrs,
-	} = getCtx();
-
-	const dispatch = createDispatcher();
-	const attrs = getAttrs("close");
-
-	$: builder = $close;
-	$: Object.assign(builder, attrs);
+	const closeState = usePopoverClose({
+		id: box.with(() => id),
+		ref: box.with(
+			() => ref,
+			(v) => (ref = v)
+		),
+	});
+	const mergedProps = $derived(mergeProps(restProps, closeState.props));
 </script>
 
-{#if asChild}
-	<slot {builder} />
+{#if child}
+	{@render child({ props: mergedProps })}
 {:else}
-	<button
-		bind:this={el}
-		use:melt={builder}
-		type="button"
-		{...$$restProps}
-		on:m-click={dispatch}
-		on:m-keydown={dispatch}
-	>
-		<slot {builder} />
+	<button {...mergedProps}>
+		{@render children?.()}
 	</button>
 {/if}

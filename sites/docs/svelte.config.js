@@ -3,7 +3,7 @@ import url from "node:url";
 import adapter from "@sveltejs/adapter-cloudflare";
 import { vitePreprocess } from "@sveltejs/vite-plugin-svelte";
 import { mdsx } from "mdsx";
-import { preprocessMeltUI, sequence } from "@melt-ui/pp";
+import { preprocessMeltUI } from "@melt-ui/pp";
 import { mdsxConfig } from "./mdsx.config.js";
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
@@ -12,16 +12,14 @@ const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 const config = {
 	preprocess: [
 		mdsx(mdsxConfig),
-		sequence([
-			vitePreprocess({
-				style: {
-					css: {
-						postcss: path.join(__dirname, "postcss.config.cjs"),
-					},
+		vitePreprocess({
+			style: {
+				css: {
+					postcss: path.join(__dirname, "postcss.config.cjs"),
 				},
-			}),
-			preprocessMeltUI(),
-		]),
+			},
+		}),
+		preprocessMeltUI(),
 	],
 	extensions: [".svelte", ".md"],
 
@@ -29,7 +27,7 @@ const config = {
 		adapter: adapter(),
 		alias: {
 			"$icons/*": "src/lib/components/icons/*",
-			"contentlayer/generated": ".contentlayer/generated",
+			"$content/*": ".velite/*",
 		},
 	},
 };

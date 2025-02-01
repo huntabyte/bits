@@ -1,179 +1,115 @@
 <script lang="ts">
-	import { derived } from "svelte/store";
-	import { setCtx } from "../ctx.js";
-	import type { Props } from "../index.js";
+	import { box, mergeProps } from "svelte-toolbelt";
+	import type { DateValue } from "@internationalized/date";
+	import { useDateRangeFieldRoot } from "../date-range-field.svelte.js";
+	import type { DateRangeFieldRootProps } from "../types.js";
+	import { useId } from "$lib/internal/use-id.js";
+	import { noop } from "$lib/internal/noop.js";
+	import type { DateRange } from "$lib/shared/index.js";
+	import { getDefaultDate } from "$lib/internal/date-time/utils.js";
 
-	type $$Props = Props;
-
-	export let value: $$Props["value"] = undefined;
-	export let onValueChange: $$Props["onValueChange"] = undefined;
-	export let placeholder: $$Props["placeholder"] = undefined;
-	export let onPlaceholderChange: $$Props["onPlaceholderChange"] = undefined;
-	export let disabled: $$Props["disabled"] = undefined;
-	export let isDateUnavailable: $$Props["isDateUnavailable"] = undefined;
-	export let granularity: $$Props["granularity"] = undefined;
-	export let hideTimeZone: $$Props["hideTimeZone"] = undefined;
-	export let hourCycle: $$Props["hourCycle"] = undefined;
-	export let locale: $$Props["locale"] = undefined;
-	export let maxValue: $$Props["maxValue"] = undefined;
-	export let minValue: $$Props["minValue"] = undefined;
-	export let readonly: $$Props["readonly"] = undefined;
-	export let validationId: $$Props["validationId"] = undefined;
-	export let descriptionId: $$Props["descriptionId"] = undefined;
-	export let readonlySegments: $$Props["readonlySegments"] = undefined;
-
-	const {
-		states: { value: localValue, placeholder: localPlaceholder, isInvalid: localIsInvalid },
-		updateOption,
-		ids,
-	} = setCtx({
-		defaultValue: value,
-		defaultPlaceholder: placeholder,
-		disabled,
-		granularity,
-		hideTimeZone,
+	let {
+		id = useId(),
+		ref = $bindable(null),
+		value = $bindable(),
+		onValueChange = noop,
+		placeholder = $bindable(),
+		onPlaceholderChange = noop,
+		disabled = false,
+		readonly = false,
+		required = false,
 		hourCycle,
-		locale,
+		granularity,
+		locale = "en-US",
+		hideTimeZone = false,
+		validate = noop,
+		onInvalid = noop,
 		maxValue,
 		minValue,
-		readonly,
-		isDateUnavailable,
-		readonlySegments,
-		onValueChange: ({ next }) => {
-			if (value !== next) {
-				onValueChange?.(next);
-				value = next;
+		readonlySegments = [],
+		children,
+		child,
+		onStartValueChange = noop,
+		onEndValueChange = noop,
+		errorMessageId,
+		...restProps
+	}: DateRangeFieldRootProps = $props();
+
+	let startValue = $state<DateValue | undefined>(value?.start);
+	let endValue = $state<DateValue | undefined>(value?.end);
+
+	if (placeholder === undefined) {
+		const defaultPlaceholder = getDefaultDate({
+			granularity,
+			defaultPlaceholder: undefined,
+			defaultValue: value?.start,
+		});
+
+		placeholder = defaultPlaceholder;
+	}
+
+	if (value === undefined) {
+		const defaultValue = { start: undefined, end: undefined };
+
+		value = defaultValue;
+	}
+
+	const rootState = useDateRangeFieldRoot({
+		id: box.with(() => id),
+		ref: box.with(
+			() => ref,
+			(v) => (ref = v)
+		),
+		disabled: box.with(() => disabled),
+		readonly: box.with(() => readonly),
+		required: box.with(() => required),
+		hourCycle: box.with(() => hourCycle),
+		granularity: box.with(() => granularity),
+		locale: box.with(() => locale),
+		hideTimeZone: box.with(() => hideTimeZone),
+		validate: box.with(() => validate),
+		maxValue: box.with(() => maxValue),
+		minValue: box.with(() => minValue),
+		placeholder: box.with(
+			() => placeholder as DateValue,
+			(v) => {
+				placeholder = v;
+				onPlaceholderChange(v);
 			}
-			return next;
-		},
-		onPlaceholderChange: ({ next }) => {
-			if (placeholder !== next) {
-				onPlaceholderChange?.(next);
-				placeholder = next;
+		),
+		readonlySegments: box.with(() => readonlySegments),
+		value: box.with(
+			() => value as DateRange,
+			(v) => {
+				value = v;
+				onValueChange(v);
 			}
-			return next;
-		},
+		),
+		startValue: box.with(
+			() => startValue,
+			(v) => {
+				startValue = v;
+				onStartValueChange(v);
+			}
+		),
+		endValue: box.with(
+			() => endValue,
+			(v) => {
+				endValue = v;
+				onEndValueChange(v);
+			}
+		),
+		onInvalid: box.with(() => onInvalid),
+		errorMessageId: box.with(() => errorMessageId),
 	});
 
-	const startIdValues = derived(
-		[
-			ids.start.day,
-			ids.start.description,
-			ids.start.dayPeriod,
-			ids.start.hour,
-			ids.start.minute,
-			ids.start.month,
-			ids.start.second,
-			ids.start.year,
-			ids.start.validation,
-			ids.start.label,
-			ids.start.timeZoneName,
-		],
-		([
-			$dayId,
-			$descriptionId,
-			$dayPeriodId,
-			$hourId,
-			$minuteId,
-			$monthId,
-			$secondId,
-			$yearId,
-			$validationId,
-			$labelId,
-			$timeZoneNameId,
-		]) => ({
-			day: $dayId,
-			description: $descriptionId,
-			dayPeriod: $dayPeriodId,
-			hour: $hourId,
-			minute: $minuteId,
-			month: $monthId,
-			second: $secondId,
-			year: $yearId,
-			validation: $validationId,
-			label: $labelId,
-			timeZoneName: $timeZoneNameId,
-		})
-	);
-
-	const endIdValues = derived(
-		[
-			ids.end.day,
-			ids.end.description,
-			ids.end.dayPeriod,
-			ids.end.hour,
-			ids.end.minute,
-			ids.end.month,
-			ids.end.second,
-			ids.end.year,
-			ids.end.validation,
-			ids.end.label,
-			ids.end.timeZoneName,
-		],
-		([
-			$dayId,
-			$descriptionId,
-			$dayPeriodId,
-			$hourId,
-			$minuteId,
-			$monthId,
-			$secondId,
-			$yearId,
-			$validationId,
-			$labelId,
-			$timeZoneNameId,
-		]) => ({
-			day: $dayId,
-			description: $descriptionId,
-			dayPeriod: $dayPeriodId,
-			hour: $hourId,
-			minute: $minuteId,
-			month: $monthId,
-			second: $secondId,
-			year: $yearId,
-			validation: $validationId,
-			label: $labelId,
-			timeZoneName: $timeZoneNameId,
-		})
-	);
-
-	const fieldIdValues = derived(
-		[ids.field.description, ids.field.field, ids.field.label, ids.field.validation],
-		([$descriptionId, $fieldId, $labelId, $validationId]) => ({
-			description: $descriptionId,
-			field: $fieldId,
-			label: $labelId,
-			validation: $validationId,
-		})
-	);
-
-	$: if (descriptionId) {
-		ids.field.description.set(descriptionId);
-	}
-
-	$: if (validationId) {
-		ids.field.validation.set(validationId);
-	}
-
-	$: value !== undefined && localValue.set(value);
-	$: placeholder !== undefined && localPlaceholder.set(placeholder);
-
-	$: updateOption("disabled", disabled);
-	$: updateOption("isDateUnavailable", isDateUnavailable);
-	$: updateOption("granularity", granularity);
-	$: updateOption("hideTimeZone", hideTimeZone);
-	$: updateOption("hourCycle", hourCycle);
-	$: updateOption("locale", locale);
-	$: updateOption("maxValue", maxValue);
-	$: updateOption("minValue", minValue);
-	$: updateOption("readonly", readonly);
-	$: updateOption("readonlySegments", readonlySegments);
-
-	$: idSlotProp = {
-		start: $startIdValues,
-		end: $endIdValues,
-		field: $fieldIdValues,
-	};
+	const mergedProps = $derived(mergeProps(restProps, rootState.props));
 </script>
 
-<slot isInvalid={$localIsInvalid} ids={idSlotProp} />
+{#if child}
+	{@render child({ props: mergedProps })}
+{:else}
+	<div {...mergedProps}>
+		{@render children?.()}
+	</div>
+{/if}

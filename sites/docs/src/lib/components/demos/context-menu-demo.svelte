@@ -1,7 +1,10 @@
 <script lang="ts">
 	import { ContextMenu } from "bits-ui";
-	import { CopySimple, MouseSimple, PencilSimpleLine, PlusCircle, Trash } from "$icons/index.js";
-	import { flyAndScale } from "$lib/utils/index.js";
+	import CopySimple from "phosphor-svelte/lib/CopySimple";
+	import MouseSimple from "phosphor-svelte/lib/MouseSimple";
+	import PencilSimpleLine from "phosphor-svelte/lib/PencilSimpleLine";
+	import PlusCircle from "phosphor-svelte/lib/PlusCircle";
+	import Trash from "phosphor-svelte/lib/Trash";
 </script>
 
 <ContextMenu.Root>
@@ -13,37 +16,16 @@
 			Right click me
 		</div>
 	</ContextMenu.Trigger>
-	<ContextMenu.Content
-		class="z-50 w-full max-w-[229px] rounded-xl border border-muted bg-background px-1 py-1.5 shadow-popover outline-none"
-		transition={flyAndScale}
-	>
-		<ContextMenu.Item
-			class="flex h-10 select-none items-center rounded-button py-3 pl-3 pr-1.5 text-sm font-medium outline-none !ring-0 !ring-transparent data-[highlighted]:bg-muted"
+	<ContextMenu.Portal>
+		<ContextMenu.Content
+			class="focus-override w-[229px] rounded-xl border border-muted bg-background px-1 py-1.5 shadow-popover outline-none focus-visible:outline-none"
 		>
-			<div class="flex items-center">
-				<PencilSimpleLine class="mr-2 size-5 text-foreground-alt" />
-				Edit
-			</div>
-			<div class="ml-auto flex items-center gap-px">
-				<kbd
-					class="inline-flex size-5 items-center justify-center rounded-button border border-dark-10 bg-background-alt text-[13px] text-muted-foreground shadow-kbd"
-				>
-					⌘
-				</kbd>
-				<kbd
-					class="inline-flex size-5 items-center justify-center rounded-button border border-dark-10 bg-background-alt text-[11px] text-muted-foreground shadow-kbd"
-				>
-					E
-				</kbd>
-			</div>
-		</ContextMenu.Item>
-		<ContextMenu.Sub>
-			<ContextMenu.SubTrigger
-				class="flex h-10 select-none items-center rounded-button py-3 pl-3 pr-1.5 text-sm font-medium outline-none !ring-0 !ring-transparent data-[highlighted]:bg-muted data-[state=open]:bg-muted"
+			<ContextMenu.Item
+				class="flex h-10 select-none items-center rounded-button py-3 pl-3 pr-1.5 text-sm font-medium outline-none !ring-0 !ring-transparent data-[highlighted]:bg-muted"
 			>
 				<div class="flex items-center">
-					<PlusCircle class="mr-2 size-5 text-foreground-alt" />
-					Add
+					<PencilSimpleLine class="mr-2 size-5 text-foreground-alt" />
+					Edit
 				</div>
 				<div class="ml-auto flex items-center gap-px">
 					<kbd
@@ -54,70 +36,91 @@
 					<kbd
 						class="inline-flex size-5 items-center justify-center rounded-button border border-dark-10 bg-background-alt text-[11px] text-muted-foreground shadow-kbd"
 					>
-						N
+						E
 					</kbd>
 				</div>
-			</ContextMenu.SubTrigger>
-			<ContextMenu.SubContent
-				class="z-50 w-full max-w-[209px] select-none rounded-xl border border-muted bg-background px-1 py-1.5 shadow-popover outline-none"
-				transition={flyAndScale}
-				sideOffset={10}
+			</ContextMenu.Item>
+			<ContextMenu.Sub>
+				<ContextMenu.SubTrigger
+					class="flex h-10 select-none items-center rounded-button py-3 pl-3 pr-1.5 text-sm font-medium outline-none !ring-0 !ring-transparent data-[highlighted]:bg-muted data-[state=open]:bg-muted"
+				>
+					<div class="flex items-center">
+						<PlusCircle class="mr-2 size-5 text-foreground-alt" />
+						Add
+					</div>
+					<div class="ml-auto flex items-center gap-px">
+						<kbd
+							class="inline-flex size-5 items-center justify-center rounded-button border border-dark-10 bg-background-alt text-[13px] text-muted-foreground shadow-kbd"
+						>
+							⌘
+						</kbd>
+						<kbd
+							class="inline-flex size-5 items-center justify-center rounded-button border border-dark-10 bg-background-alt text-[11px] text-muted-foreground shadow-kbd"
+						>
+							N
+						</kbd>
+					</div>
+				</ContextMenu.SubTrigger>
+				<ContextMenu.SubContent
+					class="z-[100] w-[209px] rounded-xl border border-muted bg-background px-1 py-1.5 shadow-popover !ring-0 !ring-transparent"
+					sideOffset={10}
+				>
+					<ContextMenu.Item
+						class="flex h-10 select-none items-center rounded-button py-3 pl-3 pr-1.5 text-sm font-normal outline-none !ring-0 !ring-transparent data-[highlighted]:bg-muted"
+					>
+						Header
+					</ContextMenu.Item>
+					<ContextMenu.Item
+						class="flex h-10 select-none items-center rounded-button py-3 pl-3 pr-1.5 text-sm font-normal outline-none !ring-0 !ring-transparent data-[highlighted]:bg-muted"
+					>
+						Paragraph
+					</ContextMenu.Item>
+					<ContextMenu.Item
+						class="flex h-10 select-none items-center rounded-button py-3 pl-3 pr-1.5 text-sm font-normal outline-none !ring-0 !ring-transparent data-[highlighted]:bg-muted"
+					>
+						Codeblock
+					</ContextMenu.Item>
+					<ContextMenu.Item
+						class="flex h-10 select-none items-center rounded-button py-3 pl-3 pr-1.5 text-sm font-normal outline-none !ring-0 !ring-transparent data-[highlighted]:bg-muted"
+					>
+						List
+					</ContextMenu.Item>
+					<ContextMenu.Item
+						class="flex h-10 select-none items-center rounded-button py-3 pl-3 pr-1.5 text-sm font-normal outline-none !ring-0 !ring-transparent data-[highlighted]:bg-muted"
+					>
+						Task
+					</ContextMenu.Item>
+				</ContextMenu.SubContent>
+			</ContextMenu.Sub>
+			<ContextMenu.Item
+				class="flex h-10 select-none items-center rounded-button py-3 pl-3 pr-1.5 text-sm font-medium outline-none !ring-0 !ring-transparent data-[highlighted]:bg-muted"
 			>
-				<ContextMenu.Item
-					class="flex h-10 items-center rounded-button py-3 pl-3 pr-1.5 text-sm font-normal outline-none !ring-0 !ring-transparent data-[highlighted]:bg-muted"
-				>
-					Header
-				</ContextMenu.Item>
-				<ContextMenu.Item
-					class="flex h-10 items-center rounded-button py-3 pl-3 pr-1.5 text-sm font-normal outline-none !ring-0 !ring-transparent data-[highlighted]:bg-muted"
-				>
-					Paragraph
-				</ContextMenu.Item>
-				<ContextMenu.Item
-					class="flex h-10 items-center rounded-button py-3 pl-3 pr-1.5 text-sm font-normal outline-none !ring-0 !ring-transparent data-[highlighted]:bg-muted"
-				>
-					Codeblock
-				</ContextMenu.Item>
-				<ContextMenu.Item
-					class="flex h-10 items-center rounded-button py-3 pl-3 pr-1.5 text-sm font-normal outline-none !ring-0 !ring-transparent data-[highlighted]:bg-muted"
-				>
-					List
-				</ContextMenu.Item>
-				<ContextMenu.Item
-					class="flex h-10 items-center rounded-button py-3 pl-3 pr-1.5 text-sm font-normal outline-none !ring-0 !ring-transparent data-[highlighted]:bg-muted"
-				>
-					Task
-				</ContextMenu.Item>
-			</ContextMenu.SubContent>
-		</ContextMenu.Sub>
-		<ContextMenu.Item
-			class="flex h-10 select-none items-center rounded-button py-3 pl-3 pr-1.5 text-sm font-medium outline-none !ring-0 !ring-transparent data-[highlighted]:bg-muted"
-		>
-			<div class="flex items-center">
-				<CopySimple class="mr-2 size-5 text-foreground-alt" />
-				Duplicate
-			</div>
-			<div class="ml-auto flex items-center gap-px">
-				<kbd
-					class="inline-flex size-5 items-center justify-center rounded-button border border-dark-10 bg-background-alt text-[13px] text-muted-foreground shadow-kbd"
-				>
-					⌘
-				</kbd>
-				<kbd
-					class="inline-flex size-5 items-center justify-center rounded-button border border-dark-10 bg-background-alt text-[11px] text-muted-foreground shadow-kbd"
-				>
-					D
-				</kbd>
-			</div>
-		</ContextMenu.Item>
-		<ContextMenu.Separator class="-mx-1 my-1 block h-px bg-muted" />
-		<ContextMenu.Item
-			class="flex h-10 select-none items-center rounded-button py-3 pl-3 pr-1.5 text-sm font-medium outline-none !ring-0 !ring-transparent data-[highlighted]:bg-muted"
-		>
-			<div class="flex items-center">
-				<Trash class="mr-2 size-5 text-foreground-alt" />
-				Delete
-			</div>
-		</ContextMenu.Item>
-	</ContextMenu.Content>
+				<div class="flex items-center">
+					<CopySimple class="mr-2 size-5 text-foreground-alt" />
+					Duplicate
+				</div>
+				<div class="ml-auto flex items-center gap-px">
+					<kbd
+						class="inline-flex size-5 items-center justify-center rounded-button border border-dark-10 bg-background-alt text-[13px] text-muted-foreground shadow-kbd"
+					>
+						⌘
+					</kbd>
+					<kbd
+						class="inline-flex size-5 items-center justify-center rounded-button border border-dark-10 bg-background-alt text-[11px] text-muted-foreground shadow-kbd"
+					>
+						D
+					</kbd>
+				</div>
+			</ContextMenu.Item>
+			<ContextMenu.Separator class="-mx-1 my-1 block h-px bg-muted" />
+			<ContextMenu.Item
+				class="flex h-10 select-none items-center rounded-button py-3 pl-3 pr-1.5 text-sm font-medium outline-none !ring-0 !ring-transparent data-[highlighted]:bg-muted"
+			>
+				<div class="flex items-center">
+					<Trash class="mr-2 size-5 text-foreground-alt" />
+					Delete
+				</div>
+			</ContextMenu.Item>
+		</ContextMenu.Content>
+	</ContextMenu.Portal>
 </ContextMenu.Root>

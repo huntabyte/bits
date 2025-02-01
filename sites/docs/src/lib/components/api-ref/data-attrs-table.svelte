@@ -1,11 +1,11 @@
 <script lang="ts">
 	import ValueContent from "./data-attr-value-content.svelte";
-	import { Code } from "$lib/components/index.js";
+	import Code from "$lib/components/markdown/code.svelte";
 	import * as Table from "$lib/components/ui/table/index.js";
 	import type { DataAttrSchema } from "$lib/types/index.js";
 	import { parseMarkdown } from "$lib/utils/index.js";
 
-	export let dataAttrs: DataAttrSchema[] = [];
+	let { dataAttrs = [] }: { dataAttrs: DataAttrSchema[] } = $props();
 </script>
 
 <Table.Root>
@@ -18,7 +18,7 @@
 	</Table.Header>
 	<Table.Body>
 		{#if dataAttrs.length}
-			{#each dataAttrs as attr}
+			{#each dataAttrs as attr (attr.name)}
 				<Table.Row>
 					<Table.Cell class="align-baseline">
 						<Code class="font-semibold text-foreground">data-{attr.name}</Code>

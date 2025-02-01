@@ -1,63 +1,23 @@
 <script lang="ts">
-	import { derived } from "svelte/store";
-	import type { MenuProps } from "../index.js";
-	import { setMenuCtx } from "../ctx.js";
-	type $$Props = MenuProps;
+	import { box } from "svelte-toolbelt";
+	import type { MenubarMenuProps } from "../types.js";
+	import { useMenubarMenu } from "../menubar.svelte.js";
+	import Menu from "$lib/bits/menu/components/menu.svelte";
+	import { useId } from "$lib/internal/use-id.js";
 
-	export let closeOnOutsideClick: $$Props["closeOnOutsideClick"] = undefined;
-	export let closeOnEscape: $$Props["closeOnEscape"] = undefined;
-	export let portal: $$Props["portal"] = undefined;
-	export let open: $$Props["open"] = undefined;
-	export let onOpenChange: $$Props["onOpenChange"] = undefined;
-	export let loop: $$Props["loop"] = undefined;
-	export let dir: $$Props["dir"] = undefined;
-	export let typeahead: $$Props["typeahead"] = undefined;
-	export let closeFocus: $$Props["closeFocus"] = undefined;
-	export let disableFocusFirstItem: $$Props["disableFocusFirstItem"] = undefined;
-	export let closeOnItemClick: $$Props["closeOnItemClick"] = undefined;
-	export let onOutsideClick: $$Props["onOutsideClick"] = undefined;
+	let { value = useId(), ...restProps }: MenubarMenuProps = $props();
 
-	const {
-		states: { open: localOpen },
-		updateOption,
-		ids,
-	} = setMenuCtx({
-		closeOnOutsideClick,
-		closeOnEscape,
-		portal,
-		loop,
-		dir,
-		typeahead,
-		closeFocus,
-		disableFocusFirstItem,
-		closeOnItemClick,
-		onOutsideClick,
-		onOpenChange: ({ next }) => {
-			if (open !== next) {
-				onOpenChange?.(next);
-				open = next;
-			}
-			return next;
-		},
+	const menuState = useMenubarMenu({
+		value: box.with(() => value),
 	});
-
-	const idValues = derived([ids.menu, ids.trigger], ([$menuId, $triggerId]) => ({
-		menu: $menuId,
-		trigger: $triggerId,
-	}));
-
-	$: open !== undefined && localOpen.set(open);
-
-	$: updateOption("closeOnOutsideClick", closeOnOutsideClick);
-	$: updateOption("closeOnEscape", closeOnEscape);
-	$: updateOption("portal", portal);
-	$: updateOption("loop", loop);
-	$: updateOption("dir", dir);
-	$: updateOption("closeFocus", closeFocus);
-	$: updateOption("disableFocusFirstItem", disableFocusFirstItem);
-	$: updateOption("typeahead", typeahead);
-	$: updateOption("closeOnItemClick", closeOnItemClick);
-	$: updateOption("onOutsideClick", onOutsideClick);
 </script>
 
-<slot menuIds={$idValues} />
+<Menu
+	open={menuState.open}
+	onOpenChange={(open) => {
+		if (!open) menuState.root.onMenuClose();
+	}}
+	dir={menuState.root.dir.current}
+	_internal_variant="menubar"
+	{...restProps}
+/>

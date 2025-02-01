@@ -1,47 +1,38 @@
 <script lang="ts">
-	import { melt } from "@melt-ui/svelte";
-	import { getCtx } from "../ctx.js";
-	import type { TriggerEvents, TriggerProps } from "../index.js";
-	import { createDispatcher } from "$lib/internal/index.js";
+	import { box, mergeProps } from "svelte-toolbelt";
+	import type { TooltipTriggerProps } from "../types.js";
+	import { useTooltipTrigger } from "../tooltip.svelte.js";
+	import { useId } from "$lib/internal/use-id.js";
+	import FloatingLayerAnchor from "$lib/bits/utilities/floating-layer/components/floating-layer-anchor.svelte";
 
-	type $$Props = TriggerProps;
-	type $$Events = TriggerEvents;
+	let {
+		children,
+		child,
+		id = useId(),
+		disabled = false,
+		type = "button",
+		ref = $bindable(null),
+		...restProps
+	}: TooltipTriggerProps = $props();
 
-	export let asChild: $$Props["asChild"] = false;
-	export let id: $$Props["id"] = undefined;
-	export let el: $$Props["el"] = undefined;
+	const triggerState = useTooltipTrigger({
+		id: box.with(() => id),
+		disabled: box.with(() => disabled ?? false),
+		ref: box.with(
+			() => ref,
+			(v) => (ref = v)
+		),
+	});
 
-	const {
-		elements: { trigger },
-		ids,
-		getAttrs,
-	} = getCtx();
-
-	const dispatch = createDispatcher();
-	const attrs = getAttrs("trigger");
-
-	$: if (id) {
-		ids.trigger.set(id);
-	}
-	$: builder = $trigger;
-	$: Object.assign(builder, attrs);
+	const mergedProps = $derived(mergeProps(restProps, triggerState.props, { type }));
 </script>
 
-{#if asChild}
-	<slot {builder} />
-{:else}
-	<button
-		bind:this={el}
-		use:melt={builder}
-		type="button"
-		{...$$restProps}
-		on:m-blur={dispatch}
-		on:m-focus={dispatch}
-		on:m-keydown={dispatch}
-		on:m-pointerdown={dispatch}
-		on:m-pointerenter={dispatch}
-		on:m-pointerleave={dispatch}
-	>
-		<slot {builder} />
-	</button>
-{/if}
+<FloatingLayerAnchor {id}>
+	{#if child}
+		{@render child({ props: mergedProps })}
+	{:else}
+		<button {...mergedProps}>
+			{@render children?.()}
+		</button>
+	{/if}
+</FloatingLayerAnchor>

@@ -1,39 +1,37 @@
 <script lang="ts">
-	import { melt } from "@melt-ui/svelte";
-	import { getGroupCtx } from "../ctx.js";
-	import type { GroupItemEvents, GroupItemProps } from "../index.js";
-	import { createDispatcher, disabledAttrs } from "$lib/internal/index.js";
+	import { box, mergeProps } from "svelte-toolbelt";
+	import type { ToolbarGroupItemProps } from "../types.js";
+	import { useToolbarGroupItem } from "../toolbar.svelte.js";
+	import { useId } from "$lib/internal/use-id.js";
 
-	type $$Props = GroupItemProps;
-	type $$Events = GroupItemEvents;
+	let {
+		child,
+		children,
+		value,
+		disabled = false,
+		type = "button",
+		id = useId(),
+		ref = $bindable(null),
+		...restProps
+	}: ToolbarGroupItemProps = $props();
 
-	export let value: $$Props["value"];
-	export let disabled: $$Props["disabled"] = false;
-	export let asChild: $$Props["asChild"] = false;
-	export let el: $$Props["el"] = undefined;
+	const groupItemState = useToolbarGroupItem({
+		id: box.with(() => id),
+		value: box.with(() => value),
+		disabled: box.with(() => disabled ?? false),
+		ref: box.with(
+			() => ref,
+			(v) => (ref = v)
+		),
+	});
 
-	const {
-		elements: { item },
-		getAttrs,
-	} = getGroupCtx();
-
-	const dispatch = createDispatcher();
-	$: attrs = { ...getAttrs("group-item"), ...disabledAttrs(disabled) };
-
-	$: builder = $item({ value, disabled });
-	$: Object.assign(builder, attrs);
+	const mergedProps = $derived(mergeProps(restProps, groupItemState.props, { type }));
 </script>
 
-{#if asChild}
-	<slot {builder} />
+{#if child}
+	{@render child({ props: mergedProps, pressed: groupItemState.isPressed })}
 {:else}
-	<button
-		bind:this={el}
-		use:melt={builder}
-		{...$$restProps}
-		on:m-click={dispatch}
-		on:m-keydown={dispatch}
-	>
-		<slot {builder} />
+	<button {...mergedProps}>
+		{@render children?.({ pressed: groupItemState.isPressed })}
 	</button>
 {/if}

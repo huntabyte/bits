@@ -1,56 +1,36 @@
 <script lang="ts">
-	import { melt } from "@melt-ui/svelte";
-	import { getSubTrigger } from "../ctx.js";
-	import type { SubTriggerEvents, SubTriggerProps } from "../index.js";
-	import { disabledAttrs } from "$lib/internal/index.js";
-	import { createDispatcher } from "$lib/internal/events.js";
+	import { box, mergeProps } from "svelte-toolbelt";
+	import type { MenuItemProps } from "../types.js";
+	import { useMenuSubTrigger } from "../menu.svelte.js";
+	import { useId } from "$lib/internal/use-id.js";
+	import FloatingLayerAnchor from "$lib/bits/utilities/floating-layer/components/floating-layer-anchor.svelte";
+	let {
+		id = useId(),
+		disabled = false,
+		ref = $bindable(null),
+		children,
+		child,
+		...restProps
+	}: MenuItemProps = $props();
 
-	type $$Props = SubTriggerProps & {
-		disabled?: boolean;
-	};
-	type $$Events = SubTriggerEvents;
-	export let disabled: $$Props["disabled"] = false;
-	export let asChild: $$Props["asChild"] = false;
-	export let id: $$Props["id"] = undefined;
-	export let el: $$Props["el"] = undefined;
+	const subTriggerState = useMenuSubTrigger({
+		disabled: box.with(() => disabled),
+		id: box.with(() => id),
+		ref: box.with(
+			() => ref,
+			(v) => (ref = v)
+		),
+	});
 
-	const {
-		elements: { subTrigger },
-		ids,
-		getAttrs,
-		options,
-	} = getSubTrigger();
-	const { disabled: disabledStore } = options;
-
-	const dispatch = createDispatcher();
-
-	$: if (id) {
-		ids.trigger.set(id);
-	}
-
-	$: builder = $subTrigger;
-	$: attrs = {
-		...getAttrs("sub-trigger"),
-		...disabledAttrs(disabled || $disabledStore),
-	};
-	$: Object.assign(builder, attrs);
+	const mergedProps = $derived(mergeProps(restProps, subTriggerState.props));
 </script>
 
-{#if asChild}
-	<slot {builder} />
-{:else}
-	<div
-		bind:this={el}
-		use:melt={builder}
-		{...$$restProps}
-		on:m-click={dispatch}
-		on:m-focusin={dispatch}
-		on:m-focusout={dispatch}
-		on:m-keydown={dispatch}
-		on:m-pointerleave={dispatch}
-		on:m-pointermove={dispatch}
-		on:pointerenter
-	>
-		<slot {builder} />
-	</div>
-{/if}
+<FloatingLayerAnchor {id}>
+	{#if child}
+		{@render child({ props: mergedProps })}
+	{:else}
+		<div {...mergedProps}>
+			{@render children?.()}
+		</div>
+	{/if}
+</FloatingLayerAnchor>

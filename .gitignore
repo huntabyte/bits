@@ -74,3 +74,4 @@ web_modules/
 .env.production.local
 .env.local
 .contentlayer
+sites/docs/.velite

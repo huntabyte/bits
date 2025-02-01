@@ -16,12 +16,9 @@ jobs:
         name: Release
         runs-on: macos-latest
         steps:
-            - name: Checkout Repo
-              uses: actions/checkout@v4
+            - uses: actions/checkout@v4
               with:
-                  # This makes Actions fetch all Git history so that Changesets can generate changelogs with the correct commits
                   fetch-depth: 0
-
             - uses: pnpm/action-setup@v4
             - uses: actions/setup-node@v4
               with:

@@ -1,46 +1,39 @@
 <script lang="ts">
-	import { melt } from "@melt-ui/svelte";
-	import { getCtx } from "../ctx.js";
-	import type { TriggerEvents, TriggerProps } from "../index.js";
-	import { createDispatcher } from "$lib/internal/events.js";
+	import { box, mergeProps } from "svelte-toolbelt";
+	import type { ContextMenuTriggerProps } from "../types.js";
+	import { useMenuContextTrigger } from "$lib/bits/menu/menu.svelte.js";
+	import { useId } from "$lib/internal/use-id.js";
+	import { FloatingLayer } from "$lib/bits/utilities/floating-layer/index.js";
 
-	type $$Props = TriggerProps;
-	type $$Events = TriggerEvents;
+	let {
+		id = useId(),
+		ref = $bindable(null),
+		child,
+		children,
+		disabled = false,
+		...restProps
+	}: ContextMenuTriggerProps = $props();
 
-	export let asChild: $$Props["asChild"] = false;
-	export let id: $$Props["id"] = undefined;
-	export let el: $$Props["el"] = undefined;
+	const triggerState = useMenuContextTrigger({
+		id: box.with(() => id),
+		disabled: box.with(() => disabled),
+		ref: box.with(
+			() => ref,
+			(v) => (ref = v)
+		),
+	});
 
-	const {
-		elements: { trigger },
-		ids,
-		getAttrs,
-	} = getCtx();
-
-	const dispatch = createDispatcher();
-	const attrs = getAttrs("trigger");
-
-	$: if (id) {
-		ids.trigger.set(id);
-	}
-
-	$: builder = $trigger;
-	$: Object.assign(builder, attrs);
+	const mergedProps = $derived(
+		mergeProps(restProps, triggerState.props, { style: { pointerEvents: "auto" } })
+	);
 </script>
 
-{#if asChild}
-	<slot {builder} />
-{:else}
-	<div
-		bind:this={el}
-		use:melt={builder}
-		{...$$restProps}
-		on:m-contextmenu={dispatch}
-		on:m-pointercancel={dispatch}
-		on:m-pointerdown={dispatch}
-		on:m-pointermove={dispatch}
-		on:m-pointerup={dispatch}
-	>
-		<slot {builder} />
-	</div>
-{/if}
+<FloatingLayer.Anchor {id} virtualEl={triggerState.virtualElement}>
+	{#if child}
+		{@render child({ props: mergedProps })}
+	{:else}
+		<div {...mergedProps}>
+			{@render children?.()}
+		</div>
+	{/if}
+</FloatingLayer.Anchor>

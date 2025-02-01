@@ -1,27 +1,35 @@
 <script lang="ts">
-	import { melt } from "@melt-ui/svelte";
-	import { getImage } from "../ctx.js";
-	import type { ImageProps } from "../index.js";
+	import { box, mergeProps } from "svelte-toolbelt";
+	import type { AvatarImageProps } from "../types.js";
+	import { useAvatarImage } from "../avatar.svelte.js";
+	import { useId } from "$lib/internal/use-id.js";
 
-	type $$Props = ImageProps;
+	let {
+		src,
+		child,
+		id = useId(),
+		ref = $bindable(null),
+		crossorigin = undefined,
+		referrerpolicy = undefined,
+		...restProps
+	}: AvatarImageProps = $props();
 
-	export let src: $$Props["src"] = undefined;
-	export let alt: $$Props["alt"] = undefined;
-	export let asChild: $$Props["asChild"] = false;
-	export let el: $$Props["el"] = undefined;
+	const imageState = useAvatarImage({
+		src: box.with(() => src),
+		id: box.with(() => id),
+		ref: box.with(
+			() => ref,
+			(v) => (ref = v)
+		),
+		crossOrigin: box.with(() => crossorigin),
+		referrerPolicy: box.with(() => referrerpolicy),
+	});
 
-	const attrs = {
-		"data-bits-avatar-image": "",
-	};
-
-	$: image = getImage(src).elements.image;
-
-	$: builder = $image;
-	$: Object.assign(builder, attrs);
+	const mergedProps = $derived(mergeProps(restProps, imageState.props));
 </script>
 
-{#if asChild}
-	<slot {builder} />
+{#if child}
+	{@render child({ props: mergedProps })}
 {:else}
-	<img bind:this={el} use:melt={builder} {alt} {...$$restProps} />
+	<img {...mergedProps} {src} />
 {/if}

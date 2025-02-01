@@ -7,6 +7,8 @@ declare global {
 		// interface PageData {}
 		// interface Platform {}
 	}
+
+	declare module "*.md";
 }
 
 export {};

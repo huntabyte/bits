@@ -1,8 +1,8 @@
 <script lang="ts">
+	import type { HTMLAttributes } from "svelte/elements";
 	import { cn } from "$lib/utils/index.js";
 
-	let className: string | undefined | null = undefined;
-	export { className as class };
+	let { class: className, children, ...restProps }: HTMLAttributes<HTMLHeadingElement> = $props();
 </script>
 
 <h2
@@ -10,7 +10,7 @@
 		"mt-12 -scroll-m-36 text-[27px] font-semibold tracking-[-0.01em] first:mt-0",
 		className
 	)}
-	{...$$restProps}
+	{...restProps}
 >
-	<slot />
+	{@render children?.()}
 </h2>

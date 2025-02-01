@@ -1,32 +1,32 @@
 <script lang="ts">
-	import { melt } from "@melt-ui/svelte";
-	import { getCtx } from "../ctx.js";
-	import type { PrevButtonEvents, PrevButtonProps } from "../index.js";
-	import { createDispatcher } from "$lib/internal/events.js";
+	import { box, mergeProps } from "svelte-toolbelt";
+	import type { CalendarPrevButtonProps } from "../types.js";
+	import { useCalendarPrevButton } from "../calendar.svelte.js";
+	import { useId } from "$lib/internal/use-id.js";
 
-	type $$Props = PrevButtonProps;
-	type $$Events = PrevButtonEvents;
+	let {
+		children,
+		child,
+		id = useId(),
+		ref = $bindable(null),
+		...restProps
+	}: CalendarPrevButtonProps = $props();
 
-	export let asChild: $$Props["asChild"] = false;
-	export let el: $$Props["el"] = undefined;
+	const prevButtonState = useCalendarPrevButton({
+		id: box.with(() => id),
+		ref: box.with(
+			() => ref,
+			(v) => (ref = v)
+		),
+	});
 
-	const {
-		elements: { prevButton },
-		getCalendarAttrs,
-	} = getCtx();
-
-	const attrs = getCalendarAttrs("prev-button");
-
-	$: builder = $prevButton;
-	$: Object.assign(builder, attrs);
-
-	const dispatch = createDispatcher();
+	const mergedProps = $derived(mergeProps(restProps, prevButtonState.props));
 </script>
 
-{#if asChild}
-	<slot {builder} />
+{#if child}
+	{@render child({ props: mergedProps })}
 {:else}
-	<button bind:this={el} use:melt={builder} type="button" {...$$restProps} on:m-click={dispatch}>
-		<slot {builder} />
+	<button {...mergedProps}>
+		{@render children?.()}
 	</button>
 {/if}

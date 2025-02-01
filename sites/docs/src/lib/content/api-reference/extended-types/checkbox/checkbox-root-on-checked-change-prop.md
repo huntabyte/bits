@@ -1,0 +1,3 @@
+```ts
+(checked: boolean) => void
+```

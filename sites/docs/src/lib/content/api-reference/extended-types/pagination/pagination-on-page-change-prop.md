@@ -1,0 +1,3 @@
+```ts
+(page: number) => void
+```

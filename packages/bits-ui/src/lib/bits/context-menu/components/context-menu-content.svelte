@@ -1,105 +1,128 @@
 <script lang="ts">
-	import { melt } from "@melt-ui/svelte";
-	import { getCtx, updatePositioning } from "../ctx.js";
-	import type { ContentEvents, ContentProps } from "../index.js";
-	import type { Transition } from "$lib/internal/types.js";
-	import { createDispatcher } from "$lib/internal/events.js";
+	import { box, mergeProps } from "svelte-toolbelt";
+	import type { ContextMenuContentProps } from "../types.js";
+	import { CONTEXT_MENU_TRIGGER_ATTR, useMenuContent } from "$lib/bits/menu/menu.svelte.js";
+	import { useId } from "$lib/internal/use-id.js";
+	import { noop } from "$lib/internal/noop.js";
+	import PopperLayer from "$lib/bits/utilities/popper-layer/popper-layer.svelte";
+	import Mounted from "$lib/bits/utilities/mounted.svelte";
+	import { getFloatingContentCSSVars } from "$lib/internal/floating-svelte/floating-utils.svelte.js";
+	import PopperLayerForceMount from "$lib/bits/utilities/popper-layer/popper-layer-force-mount.svelte";
 
-	type T = $$Generic<Transition>;
-	type In = $$Generic<Transition>;
-	type Out = $$Generic<Transition>;
-	type $$Props = ContentProps<T, In, Out>;
-	type $$Events = ContentEvents;
+	let {
+		id = useId(),
+		child,
+		children,
+		ref = $bindable(null),
+		loop = true,
+		onInteractOutside = noop,
+		preventScroll = true,
+		// we need to explicitly pass this prop to the PopperLayer to override
+		// the default menu behavior of handling outside interactions on the trigger
+		onEscapeKeydown = noop,
+		forceMount = false,
+		...restProps
+	}: ContextMenuContentProps = $props();
 
-	export let transition: $$Props["transition"] = undefined;
-	export let transitionConfig: $$Props["transitionConfig"] = undefined;
-	export let inTransition: $$Props["inTransition"] = undefined;
-	export let inTransitionConfig: $$Props["inTransitionConfig"] = undefined;
-	export let outTransition: $$Props["outTransition"] = undefined;
-	export let outTransitionConfig: $$Props["outTransitionConfig"] = undefined;
-	export let asChild: $$Props["asChild"] = false;
-	export let id: $$Props["id"] = undefined;
-	export let alignOffset: $$Props["alignOffset"] = 0;
-	export let collisionPadding: $$Props["collisionPadding"] = 8;
-	export let avoidCollisions: $$Props["avoidCollisions"] = true;
-	export let collisionBoundary: $$Props["collisionBoundary"] = undefined;
-	export let fitViewport: $$Props["fitViewport"] = false;
-	export let strategy: $$Props["strategy"] = "absolute";
-	export let overlap: $$Props["overlap"] = false;
-	export let el: $$Props["el"] = undefined;
+	let isMounted = $state(false);
 
-	const {
-		elements: { menu },
-		states: { open },
-		ids,
-		getAttrs,
-	} = getCtx();
-
-	const dispatch = createDispatcher();
-	const attrs = getAttrs("content");
-
-	$: if (id) {
-		ids.menu.set(id);
-	}
-	$: builder = $menu;
-	$: Object.assign(builder, attrs);
-
-	$: updatePositioning({
-		alignOffset,
-		collisionPadding,
-		avoidCollisions,
-		collisionBoundary,
-		fitViewport,
-		strategy,
-		overlap,
+	const contentState = useMenuContent({
+		id: box.with(() => id),
+		loop: box.with(() => loop),
+		ref: box.with(
+			() => ref,
+			(v) => (ref = v)
+		),
+		isMounted: box.with(() => isMounted),
 	});
+
+	const mergedProps = $derived(mergeProps(restProps, contentState.props));
+
+	function handleInteractOutside(e: PointerEvent) {
+		onInteractOutside(e);
+		if (e.defaultPrevented) return;
+		contentState.parentMenu.onClose();
+	}
+
+	function handleEscapeKeydown(e: KeyboardEvent) {
+		onEscapeKeydown(e);
+		if (e.defaultPrevented) return;
+		contentState.parentMenu.onClose();
+	}
+
+	function isValidEvent(e: PointerEvent) {
+		if ("button" in e && e.button === 2) {
+			const target = e.target as HTMLElement;
+			if (!target) return false;
+			const isAnotherContextTrigger =
+				target.closest(`[${CONTEXT_MENU_TRIGGER_ATTR}]`) !==
+				contentState.parentMenu.triggerNode;
+			return isAnotherContextTrigger;
+		}
+		return false;
+	}
 </script>
 
-{#if asChild && $open}
-	<slot {builder} />
-{:else if transition && $open}
-	<div
-		bind:this={el}
-		transition:transition={transitionConfig}
-		use:melt={builder}
-		{...$$restProps}
-		on:m-keydown={dispatch}
+{#if forceMount}
+	<PopperLayerForceMount
+		{...mergedProps}
+		side="right"
+		sideOffset={2}
+		align="start"
+		enabled={contentState.parentMenu.open.current}
+		{preventScroll}
+		onInteractOutside={handleInteractOutside}
+		onEscapeKeydown={handleEscapeKeydown}
+		{isValidEvent}
+		trapFocus
+		{loop}
+		{id}
 	>
-		<slot {builder} />
-	</div>
-{:else if inTransition && outTransition && $open}
-	<div
-		bind:this={el}
-		in:inTransition={inTransitionConfig}
-		out:outTransition={outTransitionConfig}
-		use:melt={builder}
-		{...$$restProps}
-		on:m-keydown={dispatch}
+		{#snippet popper({ props, wrapperProps })}
+			{@const finalProps = mergeProps(props, {
+				style: getFloatingContentCSSVars("context-menu"),
+			})}
+			{#if child}
+				{@render child({ props: finalProps, wrapperProps, ...contentState.snippetProps })}
+			{:else}
+				<div {...wrapperProps}>
+					<div {...finalProps}>
+						{@render children?.()}
+					</div>
+				</div>
+			{/if}
+			<Mounted bind:isMounted />
+		{/snippet}
+	</PopperLayerForceMount>
+{:else if !forceMount}
+	<PopperLayer
+		{...mergedProps}
+		side="right"
+		sideOffset={2}
+		align="start"
+		present={contentState.parentMenu.open.current}
+		{preventScroll}
+		onInteractOutside={handleInteractOutside}
+		onEscapeKeydown={handleEscapeKeydown}
+		{isValidEvent}
+		trapFocus
+		{loop}
+		{id}
 	>
-		<slot {builder} />
-	</div>
-{:else if inTransition && $open}
-	<div
-		bind:this={el}
-		in:inTransition={inTransitionConfig}
-		use:melt={builder}
-		{...$$restProps}
-		on:m-keydown={dispatch}
-	>
-		<slot {builder} />
-	</div>
-{:else if outTransition && $open}
-	<div
-		bind:this={el}
-		out:outTransition={outTransitionConfig}
-		use:melt={builder}
-		{...$$restProps}
-		on:m-keydown={dispatch}
-	>
-		<slot {builder} />
-	</div>
-{:else if $open}
-	<div bind:this={el} use:melt={builder} {...$$restProps} on:m-keydown={dispatch}>
-		<slot {builder} />
-	</div>
+		{#snippet popper({ props, wrapperProps })}
+			{@const finalProps = mergeProps(props, {
+				style: getFloatingContentCSSVars("context-menu"),
+			})}
+			{#if child}
+				{@render child({ props: finalProps, wrapperProps, ...contentState.snippetProps })}
+			{:else}
+				<div {...wrapperProps}>
+					<div {...finalProps}>
+						{@render children?.()}
+					</div>
+				</div>
+			{/if}
+			<Mounted bind:isMounted />
+		{/snippet}
+	</PopperLayer>
 {/if}

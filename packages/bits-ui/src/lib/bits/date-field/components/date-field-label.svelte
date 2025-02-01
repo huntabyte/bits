@@ -1,34 +1,32 @@
 <script lang="ts">
-	import { melt } from "@melt-ui/svelte";
-	import { getCtx } from "../ctx.js";
-	import type { LabelProps } from "../index.js";
+	import { box, mergeProps } from "svelte-toolbelt";
+	import { useDateFieldLabel } from "../date-field.svelte.js";
+	import type { DateFieldLabelProps } from "../types.js";
+	import { useId } from "$lib/internal/use-id.js";
 
-	type $$Props = LabelProps;
+	let {
+		id = useId(),
+		ref = $bindable(null),
+		children,
+		child,
+		...restProps
+	}: DateFieldLabelProps = $props();
 
-	export let asChild: $$Props["asChild"] = false;
-	export let id: $$Props["id"] = undefined;
-	export let el: $$Props["el"] = undefined;
+	const labelState = useDateFieldLabel({
+		id: box.with(() => id),
+		ref: box.with(
+			() => ref,
+			(v) => (ref = v)
+		),
+	});
 
-	const {
-		elements: { label },
-		ids,
-		getAttrs,
-	} = getCtx();
-
-	if (id) {
-		ids.label.set(id);
-	}
-
-	const attrs = getAttrs("label");
-
-	$: builder = $label;
-	$: Object.assign(builder, attrs);
+	const mergedProps = $derived(mergeProps(restProps, labelState.props));
 </script>
 
-{#if asChild}
-	<slot {builder} />
+{#if child}
+	{@render child({ props: mergedProps })}
 {:else}
-	<span bind:this={el} use:melt={builder} {...$$restProps}>
-		<slot {builder} />
-	</span>
+	<div {...mergedProps}>
+		{@render children?.()}
+	</div>
 {/if}

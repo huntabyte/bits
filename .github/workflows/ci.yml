@@ -5,7 +5,17 @@ on:
         branches:
             - main
             - next
+        paths-ignore:
+            - ".changeset/**"
+            - README.md
+            - ".vscode/**"
+            - CHANGELOG.md
     pull_request:
+        paths-ignore:
+            - ".changeset/**"
+            - README.md
+            - ".vscode/**"
+            - CHANGELOG.md
 
 concurrency:
     group: ${{ github.workflow }}-${{ github.event.number || github.sha }}
@@ -57,5 +67,8 @@ jobs:
 
             - name: Install dependencies
               run: pnpm install
+
+            - name: Build packages
+              run: pnpm build:packages
 
             - run: pnpm test

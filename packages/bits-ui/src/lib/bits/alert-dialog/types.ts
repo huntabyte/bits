@@ -1,104 +1,26 @@
-import type { HTMLButtonAttributes } from "svelte/elements";
-import type { CreateDialogProps as MeltDialogProps } from "@melt-ui/svelte";
-import type { CustomEventHandler } from "$lib/index.js";
-import type {
-	DOMElement,
-	Expand,
-	HTMLDivAttributes,
-	HTMLHeadingAttributes,
-	OmitOpen,
-	OnChangeFn,
-	SvelteEvent,
-	Transition,
-	TransitionProps,
-} from "$lib/internal/index.js";
+import type { DialogContentProps, DialogContentPropsWithoutHTML } from "$lib/types.js";
 
-export type AlertDialogPropsWithoutHTML = Expand<
-	OmitOpen<Omit<MeltDialogProps, "role" | "forceVisible" | "ids">> & {
-		/**
-		 * The open state of the alert dialog.
-		 * You can bind this to a boolean value to programmatically control the open state.
-		 *
-		 * @defaultValue false
-		 */
-		open?: boolean | undefined;
+export type {
+	DialogRootPropsWithoutHTML as AlertDialogRootPropsWithoutHTML,
+	DialogRootProps as AlertDialogRootProps,
+	DialogClosePropsWithoutHTML as AlertDialogActionPropsWithoutHTML,
+	DialogCloseProps as AlertDialogActionProps,
+	DialogClosePropsWithoutHTML as AlertDialogCancelPropsWithoutHTML,
+	DialogCloseProps as AlertDialogCancelProps,
+	DialogPortalPropsWithoutHTML as AlertDialogPortalPropsWithoutHTML,
+	DialogPortalProps as AlertDialogPortalProps,
+	DialogOverlayPropsWithoutHTML as AlertDialogOverlayPropsWithoutHTML,
+	DialogOverlayProps as AlertDialogOverlayProps,
+	DialogTitlePropsWithoutHTML as AlertDialogTitlePropsWithoutHTML,
+	DialogTitleProps as AlertDialogTitleProps,
+	DialogDescriptionPropsWithoutHTML as AlertDialogDescriptionPropsWithoutHTML,
+	DialogDescriptionProps as AlertDialogDescriptionProps,
+	DialogTriggerPropsWithoutHTML as AlertDialogTriggerPropsWithoutHTML,
+	DialogTriggerProps as AlertDialogTriggerProps,
+} from "$lib/bits/dialog/types.js";
 
-		/**
-		 * A callback function called when the open state changes.
-		 */
-		onOpenChange?: OnChangeFn<boolean> | undefined;
-	}
+export type AlertDialogContentPropsWithoutHTML = Omit<
+	DialogContentPropsWithoutHTML,
+	"onInteractOutside"
 >;
-
-export type AlertDialogTriggerPropsWithoutHTML = DOMElement<HTMLButtonElement>;
-
-export type AlertDialogActionPropsWithoutHTML = DOMElement<HTMLButtonElement>;
-
-export type AlertDialogCancelPropsWithoutHTML = DOMElement<HTMLButtonElement>;
-
-export type AlertDialogContentPropsWithoutHTML<
-	T extends Transition = Transition,
-	In extends Transition = Transition,
-	Out extends Transition = Transition,
-> = Expand<TransitionProps<T, In, Out> & DOMElement>;
-
-export type AlertDialogOverlayPropsWithoutHTML<
-	T extends Transition = Transition,
-	In extends Transition = Transition,
-	Out extends Transition = Transition,
-> = Expand<TransitionProps<T, In, Out> & DOMElement>;
-
-export type AlertDialogDescriptionPropsWithoutHTML = DOMElement;
-
-export type AlertDialogPortalPropsWithoutHTML = DOMElement;
-
-export type AlertDialogTitlePropsWithoutHTML = Expand<
-	{
-		level?: "h1" | "h2" | "h3" | "h4" | "h5" | "h6" | undefined;
-	} & DOMElement<HTMLHeadingElement>
->;
-
-export type AlertDialogProps = AlertDialogPropsWithoutHTML;
-
-export type AlertDialogTriggerProps = AlertDialogTriggerPropsWithoutHTML & HTMLButtonAttributes;
-
-export type AlertDialogActionProps = AlertDialogActionPropsWithoutHTML & HTMLButtonAttributes;
-
-export type AlertDialogCancelProps = AlertDialogCancelPropsWithoutHTML & HTMLButtonAttributes;
-
-export type AlertDialogContentProps<
-	T extends Transition = Transition,
-	In extends Transition = Transition,
-	Out extends Transition = Transition,
-> = AlertDialogContentPropsWithoutHTML<T, In, Out> & HTMLDivAttributes;
-
-export type AlertDialogOverlayProps<
-	T extends Transition = Transition,
-	In extends Transition = Transition,
-	Out extends Transition = Transition,
-> = AlertDialogContentPropsWithoutHTML<T, In, Out> & HTMLDivAttributes;
-
-export type AlertDialogDescriptionProps = AlertDialogDescriptionPropsWithoutHTML &
-	HTMLDivAttributes;
-
-export type AlertDialogPortalProps = AlertDialogPortalPropsWithoutHTML & HTMLDivAttributes;
-
-export type AlertDialogTitleProps = AlertDialogTitlePropsWithoutHTML & HTMLHeadingAttributes;
-
-export type AlertDialogTriggerEvents<T extends Element = HTMLButtonElement> = {
-	click: CustomEventHandler<MouseEvent, T>;
-	keydown: CustomEventHandler<KeyboardEvent, T>;
-};
-
-export type AlertDialogContentEvents<T extends Element = HTMLElement> = {
-	pointerdown: SvelteEvent<PointerEvent, T>;
-	pointerup: SvelteEvent<PointerEvent, T>;
-	pointermove: SvelteEvent<PointerEvent, T>;
-	touchend: SvelteEvent<TouchEvent, T>;
-	touchstart: SvelteEvent<TouchEvent, T>;
-	touchcancel: SvelteEvent<TouchEvent, T>;
-	touchmove: SvelteEvent<TouchEvent, T>;
-};
-
-export type AlertDialogActionEvents = AlertDialogTriggerEvents;
-export type AlertDialogCancelEvents = AlertDialogTriggerEvents;
+export type AlertDialogContentProps = DialogContentProps;

@@ -1,139 +1,115 @@
 <script lang="ts">
-	import { type Month, melt } from "@melt-ui/svelte";
-	import { onMount } from "svelte";
+	import { box, mergeProps } from "svelte-toolbelt";
 	import type { DateValue } from "@internationalized/date";
-	import { setCtx } from "../ctx.js";
-	import type { Events, Props } from "../index.js";
-	import { createDispatcher } from "$lib/internal/events.js";
-	import { handleCalendarInitialFocus } from "$lib/internal/focus.js";
+	import type { RangeCalendarRootProps } from "../types.js";
+	import { useRangeCalendarRoot } from "../range-calendar.svelte.js";
+	import { noop } from "$lib/internal/noop.js";
+	import { useId } from "$lib/internal/use-id.js";
+	import { getDefaultDate } from "$lib/internal/date-time/utils.js";
 
-	type $$Props = Props;
-	type $$Events = Events;
+	let {
+		children,
+		child,
+		id = useId(),
+		ref = $bindable(null),
+		value = $bindable(),
+		onValueChange = noop,
+		placeholder = $bindable(),
+		onPlaceholderChange = noop,
+		weekdayFormat = "narrow",
+		weekStartsOn = 0,
+		pagedNavigation = false,
+		isDateDisabled = () => false,
+		isDateUnavailable = () => false,
+		fixedWeeks = false,
+		numberOfMonths = 1,
+		locale = "en",
+		calendarLabel = "Event",
+		disabled = false,
+		readonly = false,
+		minValue = undefined,
+		maxValue = undefined,
+		preventDeselect = false,
+		disableDaysOutsideMonth = true,
+		onStartValueChange = noop,
+		onEndValueChange = noop,
+		...restProps
+	}: RangeCalendarRootProps = $props();
 
-	export let placeholder: $$Props["placeholder"] = undefined;
-	export let onPlaceholderChange: $$Props["onPlaceholderChange"] = undefined;
-	export let value: $$Props["value"] = undefined;
-	export let onValueChange: $$Props["onValueChange"] = undefined;
-	export let preventDeselect: $$Props["preventDeselect"] = undefined;
-	export let minValue: $$Props["minValue"] = undefined;
-	export let maxValue: $$Props["maxValue"] = undefined;
-	export let pagedNavigation: $$Props["pagedNavigation"] = undefined;
-	export let weekStartsOn: $$Props["weekStartsOn"] = undefined;
-	export let locale: $$Props["locale"] = undefined;
-	export let isDateUnavailable: $$Props["isDateUnavailable"] = undefined;
-	export let isDateDisabled: $$Props["isDateDisabled"] = undefined;
-	export let disabled: $$Props["disabled"] = undefined;
-	export let readonly: $$Props["readonly"] = undefined;
-	export let fixedWeeks: $$Props["fixedWeeks"] = undefined;
-	export let calendarLabel: $$Props["calendarLabel"] = undefined;
-	export let asChild: $$Props["asChild"] = false;
-	export let id: $$Props["id"] = undefined;
-	export let weekdayFormat: $$Props["weekdayFormat"] = undefined;
-	export let initialFocus: $$Props["initialFocus"] = false;
-	export let startValue: $$Props["startValue"] = undefined;
-	export let numberOfMonths: $$Props["numberOfMonths"] = undefined;
-	export let el: $$Props["el"] = undefined;
+	let startValue = $state<DateValue | undefined>(value?.start);
+	let endValue = $state<DateValue | undefined>(value?.end);
 
-	onMount(() => {
-		if (!initialFocus || !el) return;
-		handleCalendarInitialFocus(el);
-	});
-
-	const {
-		elements: { calendar },
-		states: {
-			value: localValue,
-			placeholder: localPlaceholder,
-			months: localMonths,
-			weekdays,
-			startValue: localStartValue,
-			endValue,
-		},
-		updateOption,
-		ids,
-		getAttrs,
-	} = setCtx({
-		defaultPlaceholder: placeholder,
-		defaultValue: value,
-		preventDeselect,
-		minValue,
-		maxValue,
-		pagedNavigation,
-		weekStartsOn,
-		locale,
-		isDateUnavailable,
-		isDateDisabled,
-		disabled,
-		readonly,
-		fixedWeeks,
-		calendarLabel,
-		weekdayFormat,
-		numberOfMonths,
-		onPlaceholderChange: ({ next }) => {
-			if (placeholder !== next) {
-				onPlaceholderChange?.(next);
-				placeholder = next;
-			}
-			return next;
-		},
-		onValueChange: ({ next }) => {
-			if (value !== next) {
-				onValueChange?.(next);
-				value = next;
-			}
-			return next;
-		},
-	});
-
-	$: if (id) {
-		ids.calendar.set(id);
+	if (placeholder === undefined) {
+		const defaultPlaceholder = getDefaultDate({
+			defaultPlaceholder: undefined,
+			defaultValue: value?.start,
+		});
+		placeholder = defaultPlaceholder;
 	}
 
-	$: startValue = $localStartValue;
+	if (value === undefined) {
+		const defaultValue = { start: undefined, end: undefined };
+		value = defaultValue;
+	}
 
-	$: value !== undefined && localValue.set(value);
-	$: placeholder !== undefined && localPlaceholder.set(placeholder);
+	const rootState = useRangeCalendarRoot({
+		id: box.with(() => id),
+		ref: box.with(
+			() => ref,
+			(v) => (ref = v)
+		),
+		value: box.with(
+			() => value!,
+			(v) => {
+				value = v;
+				onValueChange(v);
+			}
+		),
+		placeholder: box.with(
+			() => placeholder!,
+			(v) => {
+				placeholder = v;
+				onPlaceholderChange(v);
+			}
+		),
+		disabled: box.with(() => disabled),
+		readonly: box.with(() => readonly),
+		preventDeselect: box.with(() => preventDeselect),
+		minValue: box.with(() => minValue),
+		maxValue: box.with(() => maxValue),
+		isDateUnavailable: box.with(() => isDateUnavailable),
+		isDateDisabled: box.with(() => isDateDisabled),
+		pagedNavigation: box.with(() => pagedNavigation),
+		weekStartsOn: box.with(() => weekStartsOn),
+		weekdayFormat: box.with(() => weekdayFormat),
+		numberOfMonths: box.with(() => numberOfMonths),
+		locale: box.with(() => locale),
+		calendarLabel: box.with(() => calendarLabel),
+		fixedWeeks: box.with(() => fixedWeeks),
+		disableDaysOutsideMonth: box.with(() => disableDaysOutsideMonth),
+		startValue: box.with(
+			() => startValue,
+			(v) => {
+				startValue = v;
+				onStartValueChange(v);
+			}
+		),
+		endValue: box.with(
+			() => endValue,
+			(v) => {
+				endValue = v;
+				onEndValueChange(v);
+			}
+		),
+	});
 
-	$: updateOption("preventDeselect", preventDeselect);
-	$: updateOption("minValue", minValue);
-	$: updateOption("maxValue", maxValue);
-	$: updateOption("pagedNavigation", pagedNavigation);
-	$: updateOption("weekStartsOn", weekStartsOn);
-	$: updateOption("locale", locale);
-	$: updateOption("isDateUnavailable", isDateUnavailable);
-	$: updateOption("isDateDisabled", isDateDisabled);
-	$: updateOption("disabled", disabled);
-	$: updateOption("readonly", readonly);
-	$: updateOption("fixedWeeks", fixedWeeks);
-	$: updateOption("calendarLabel", calendarLabel);
-	$: updateOption("weekdayFormat", weekdayFormat);
-	$: updateOption("numberOfMonths", numberOfMonths);
-
-	const attrs = getAttrs("root");
-	const dispatch = createDispatcher();
-
-	$: builder = $calendar;
-	$: Object.assign(builder, attrs);
-	let months: Month<DateValue>[] = $localMonths;
-	$: months = $localMonths;
+	const mergedProps = $derived(mergeProps(restProps, rootState.props));
 </script>
 
-{#if asChild}
-	<slot
-		{builder}
-		{months}
-		weekdays={$weekdays}
-		startValue={$localStartValue}
-		endValue={$endValue}
-	/>
+{#if child}
+	{@render child({ props: mergedProps, ...rootState.snippetProps })}
 {:else}
-	<div use:melt={builder} {...$$restProps} on:m-keydown={dispatch} bind:this={el}>
-		<slot
-			{builder}
-			{months}
-			weekdays={$weekdays}
-			startValue={$localStartValue}
-			endValue={$endValue}
-		/>
+	<div {...mergedProps}>
+		{@render children?.(rootState.snippetProps)}
 	</div>
 {/if}

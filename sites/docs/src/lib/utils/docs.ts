@@ -1,12 +1,13 @@
 import { error, redirect } from "@sveltejs/kit";
-import type { Doc } from "contentlayer/generated/index.js";
+import type { Component } from "svelte";
+import type { Doc } from "$content/index.js";
 import { getAPISchemas, isBit } from "$lib/content/api-reference/index.js";
 import type { APISchema } from "$lib/types/index.js";
 
 export type FrontMatter = Pick<Doc, "title" | "description">;
 
 export type DocFile = {
-	default: import("svelte").SvelteComponent;
+	default: Component;
 	metadata: FrontMatter;
 };
 
@@ -63,9 +64,7 @@ export async function getComponentDoc(slug: string): Promise<ComponentDoc> {
 		redirect(303, "/docs/components/accordion");
 	}
 
-	if (!isBit(slug)) {
-		error(404);
-	}
+	if (!isBit(slug)) error(404);
 
 	const modules = import.meta.glob("/content/**/*.md");
 
@@ -79,9 +78,7 @@ export async function getComponentDoc(slug: string): Promise<ComponentDoc> {
 	}
 
 	const doc = await match?.resolver?.();
-	if (!doc || !doc.metadata) {
-		error(404);
-	}
+	if (!doc || !doc.metadata) error(404);
 
 	return {
 		component: doc.default,

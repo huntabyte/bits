@@ -1,61 +1,66 @@
 <script lang="ts">
-	import { melt } from "@melt-ui/svelte";
-	import { setCtx } from "../ctx.js";
-	import type { Props } from "../index.js";
+	import { box, mergeProps, type WritableBox } from "svelte-toolbelt";
+	import type { SliderRootProps } from "../types.js";
+	import { useSliderRoot } from "../slider.svelte.js";
+	import { useId } from "$lib/internal/use-id.js";
+	import { noop } from "$lib/internal/noop.js";
 
-	type $$Props = Props;
+	let {
+		children,
+		child,
+		id = useId(),
+		ref = $bindable(null),
+		value = $bindable(),
+		type,
+		onValueChange = noop,
+		onValueCommit = noop,
+		disabled = false,
+		min = 0,
+		max = 100,
+		step = 1,
+		dir = "ltr",
+		autoSort = true,
+		orientation = "horizontal",
+		...restProps
+	}: SliderRootProps = $props();
 
-	export let disabled: $$Props["disabled"] = undefined;
-	export let min: $$Props["min"] = undefined;
-	export let max: $$Props["max"] = undefined;
-	export let step: $$Props["step"] = undefined;
-	export let orientation: $$Props["orientation"] = undefined;
-	export let dir: $$Props["dir"] = undefined;
-	export let value: $$Props["value"] = undefined;
-	export let onValueChange: $$Props["onValueChange"] = undefined;
-	export let asChild: $$Props["asChild"] = false;
-	export let el: $$Props["el"] = undefined;
+	if (value === undefined) {
+		value = type === "single" ? 0 : [];
+	}
 
-	const {
-		elements: { root, ticks, thumbs },
-		states: { value: localValue },
-		updateOption,
-		getAttrs,
-	} = setCtx({
-		disabled,
-		dir,
-		min,
-		max,
-		step,
-		orientation,
-		defaultValue: value,
-		onValueChange: ({ next }) => {
-			if (value !== next) {
-				onValueChange?.(next);
-				value = next;
+	const rootState = useSliderRoot({
+		id: box.with(() => id),
+		ref: box.with(
+			() => ref,
+			(v) => (ref = v)
+		),
+		value: box.with(
+			() => value,
+			(v) => {
+				value = v;
+				// @ts-expect-error - we know
+				onValueChange(v);
 			}
-			return next;
-		},
+		) as WritableBox<number> | WritableBox<number[]>,
+		// @ts-expect-error - we know
+		onValueCommit: box.with(() => onValueCommit),
+		disabled: box.with(() => disabled),
+		min: box.with(() => min),
+		max: box.with(() => max),
+		step: box.with(() => step),
+		dir: box.with(() => dir),
+		autoSort: box.with(() => autoSort),
+		orientation: box.with(() => orientation),
+		type,
 	});
 
-	const attrs = getAttrs("root");
-
-	$: value !== undefined && localValue.set(value);
-	$: updateOption("disabled", disabled);
-	$: updateOption("min", min);
-	$: updateOption("max", max);
-	$: updateOption("step", step);
-	$: updateOption("orientation", orientation);
-	$: updateOption("dir", dir);
-
-	$: builder = $root;
-	$: Object.assign(builder, attrs);
+	const mergedProps = $derived(mergeProps(restProps, rootState.props));
 </script>
 
-{#if asChild}
-	<slot {builder} ticks={$ticks} thumbs={$thumbs} />
+{#if child}
+	{@render child({ props: mergedProps, ...rootState.snippetProps })}
 {:else}
-	<span bind:this={el} use:melt={builder} {...$$restProps}>
-		<slot {builder} ticks={$ticks} thumbs={$thumbs} />
+	<span {...mergedProps}>
+		{@render children?.(rootState.snippetProps)}
 	</span>
 {/if}

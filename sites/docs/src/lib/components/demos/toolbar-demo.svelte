@@ -1,17 +1,15 @@
 <script lang="ts">
 	import { Separator, Toolbar } from "bits-ui";
-	import {
-		Sparkle,
-		TextAlignCenter,
-		TextAlignLeft,
-		TextAlignRight,
-		TextB,
-		TextItalic,
-		TextStrikethrough,
-	} from "$icons/index.js";
+	import Sparkle from "phosphor-svelte/lib/Sparkle";
+	import TextAlignCenter from "phosphor-svelte/lib/TextAlignCenter";
+	import TextAlignLeft from "phosphor-svelte/lib/TextAlignLeft";
+	import TextAlignRight from "phosphor-svelte/lib/TextAlignRight";
+	import TextB from "phosphor-svelte/lib/TextB";
+	import TextItalic from "phosphor-svelte/lib/TextItalic";
+	import TextStrikethrough from "phosphor-svelte/lib/TextStrikethrough";
 
-	let text: string[] | undefined = ["bold"];
-	let align: string | undefined;
+	let text = $state(["bold"]);
+	let align = $state("");
 </script>
 
 <Toolbar.Root

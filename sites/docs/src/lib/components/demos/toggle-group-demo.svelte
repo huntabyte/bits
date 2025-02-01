@@ -1,8 +1,10 @@
 <script lang="ts">
 	import { ToggleGroup } from "bits-ui";
-	import { TextB, TextItalic, TextStrikethrough } from "$icons/index.js";
+	import TextB from "phosphor-svelte/lib/TextB";
+	import TextItalic from "phosphor-svelte/lib/TextItalic";
+	import TextStrikethrough from "phosphor-svelte/lib/TextStrikethrough";
 
-	let value: string[] | undefined = ["bold"];
+	let value: string[] = $state(["bold"]);
 </script>
 
 <ToggleGroup.Root

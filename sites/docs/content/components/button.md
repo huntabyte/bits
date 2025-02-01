@@ -1,18 +1,20 @@
 ---
 title: Button
-description: A special button component that can receive Melt UI builders for use with the `asChild` prop.
+description: A component that if passed a `href` prop will render an anchor element instead of a button element.
 ---
 
 <script>
-	import { APISection, ComponentPreview, ButtonDemo } from '$lib/components/index.js'
+	import { APISection, ComponentPreviewV2, ButtonDemo } from '$lib/components/index.js'
 	export let schemas;
 </script>
 
-<ComponentPreview name="button-demo" comp="Button">
+<ComponentPreviewV2 name="button-demo" comp="Avatar" nonExpandableItems={["App.svelte"]}>
 
-<ButtonDemo slot="preview" />
+{#snippet preview()}
+<ButtonDemo />
+{/snippet}
 
-</ComponentPreview>
+</ComponentPreviewV2>
 
 ## Structure
 

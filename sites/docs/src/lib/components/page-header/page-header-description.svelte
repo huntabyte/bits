@@ -1,7 +1,12 @@
 <script lang="ts">
+	import type { HTMLAttributes } from "svelte/elements";
 	import { cn } from "$lib/utils/index.js";
-	let className: string | undefined | null = undefined;
-	export { className as class };
+
+	let {
+		class: className,
+		children,
+		...restProps
+	}: HTMLAttributes<HTMLParagraphElement> = $props();
 </script>
 
 <p
@@ -9,6 +14,7 @@
 		"mb-11 mt-3 text-balance text-[21px] font-semibold leading-7 tracking-[-0.01em] text-foreground/40",
 		className
 	)}
+	{...restProps}
 >
-	<slot />
+	{@render children?.()}
 </p>

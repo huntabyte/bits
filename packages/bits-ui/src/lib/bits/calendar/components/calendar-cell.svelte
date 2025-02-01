@@ -1,30 +1,39 @@
 <script lang="ts">
-	import { getCtx } from "../ctx.js";
-	import type { CellProps } from "../index.js";
+	import { box, mergeProps } from "svelte-toolbelt";
+	import { useCalendarCell } from "../calendar.svelte.js";
+	import type { CalendarCellProps } from "../types.js";
+	import { useId } from "$lib/internal/use-id.js";
 
-	type $$Props = CellProps;
+	let {
+		children,
+		child,
+		ref = $bindable(null),
+		id = useId(),
+		date,
+		month,
+		...restProps
+	}: CalendarCellProps = $props();
 
-	export let date: $$Props["date"];
-	export let asChild: $$Props["asChild"] = false;
-	export let el: $$Props["el"] = undefined;
+	const cellState = useCalendarCell({
+		id: box.with(() => id),
+		ref: box.with(
+			() => ref,
+			(v) => (ref = v)
+		),
+		date: box.with(() => date),
+		month: box.with(() => month),
+	});
 
-	const {
-		helpers: { isDateDisabled, isDateUnavailable },
-		getCalendarAttrs,
-	} = getCtx();
-
-	$: attrs = {
-		...getCalendarAttrs("cell"),
-		"aria-disabled": $isDateDisabled(date) || $isDateUnavailable(date),
-		"data-disabled": $isDateDisabled(date) ? "" : undefined,
-		role: "gridcell",
-	};
+	const mergedProps = $derived(mergeProps(restProps, cellState.props));
 </script>
 
-{#if asChild}
-	<slot {attrs} />
+{#if child}
+	{@render child({
+		props: mergedProps,
+		...cellState.snippetProps,
+	})}
 {:else}
-	<td bind:this={el} {...$$restProps} {...attrs}>
-		<slot {attrs} />
+	<td {...mergedProps}>
+		{@render children?.(cellState.snippetProps)}
 	</td>
 {/if}

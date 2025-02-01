@@ -4,15 +4,17 @@ description: Visually separates content or UI elements for clarity and organizat
 ---
 
 <script>
-	import { APISection, ComponentPreview, SeparatorDemo } from '$lib/components/index.js'
+	import { APISection, ComponentPreviewV2, SeparatorDemo } from '$lib/components/index.js'
 	export let schemas;
 </script>
 
-<ComponentPreview name="separator-demo" comp="Separator">
+<ComponentPreviewV2 name="separator-demo" comp="Separator">
 
-<SeparatorDemo slot="preview" />
+{#snippet preview()}
+<SeparatorDemo />
+{/snippet}
 
-</ComponentPreview>
+</ComponentPreviewV2>
 
 ## Structure
 

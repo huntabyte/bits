@@ -1,0 +1,3 @@
+```ts
+"loading" | "loaded" | "error";
+```

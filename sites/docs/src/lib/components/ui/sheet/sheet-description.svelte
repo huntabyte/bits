@@ -1,13 +1,15 @@
 <script lang="ts">
-	import { Dialog as SheetPrimitive } from "bits-ui";
+	import { Dialog as SheetPrimitive, type WithoutChildren } from "bits-ui";
+	import type { Snippet } from "svelte";
 	import { cn } from "$lib/utils/index.js";
 
-	type $$Props = SheetPrimitive.DescriptionProps;
-
-	let className: $$Props["class"] = undefined;
-	export { className as class };
+	let {
+		class: className,
+		children,
+		...restProps
+	}: WithoutChildren<SheetPrimitive.DescriptionProps> & { children?: Snippet } = $props();
 </script>
 
-<SheetPrimitive.Description class={cn("text-sm text-muted-foreground", className)} {...$$restProps}>
-	<slot />
+<SheetPrimitive.Description class={cn("text-sm text-muted-foreground", className)} {...restProps}>
+	{@render children?.()}
 </SheetPrimitive.Description>

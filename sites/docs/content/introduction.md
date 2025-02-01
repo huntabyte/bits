@@ -3,29 +3,50 @@ title: Introduction
 description: The headless components for Svelte.
 ---
 
-Bits UI is a collection of headless component primitives that enable you to build your own custom components. They have been thoughtfully designed to prioritize simplicity without compromising customizability.
+Bits UI is a collection of headless component primitives for Svelte that prioritizes developer experience, accessibility, and flexibility. Our vision is to empower developers to build high-quality, accessible user interfaces without sacrificing creative control or performance.
 
-Under the hood, most of these components are powered by [Melt UI](https://melt-ui.com), which provides an even lower-level builder API for creating headless components. Bits takes that API and wraps it in a more familiar component interface, allowing us to handle some quality of life improvements for you.
+## Why Bits UI?
 
-## Unstyled
+### Bring Your Own Styles
 
-Bits UI components are unstyled by default. This means that they don't come with any styles out of the box. This is intentional, as it allows you to style them however you want. You can use the `class` prop to apply your own styles, or use the applied data attributes to target the components across your entire application. Check out the [styling](/docs/styling) section for more information.
+Most components ship with zero styling. Minimal styles are included only when absolutely necessary for core functionality. You maintain complete control over the visual design, applying your own styles through standard Svelte class props or targeting components via data attributes. See our [styling guide](/docs/styling) for implementation details.
 
-## Customizable
+### Empowering DX
 
-Each component offers a wide range of props for customizing behavior to fit your needs. Events are also dispatched for each interaction, allowing you to override the default functionality of the component.
+Every component is designed with developer experience in mind:
 
-## Accessible
+-   Extensive TypeScript support
+-   Predictable behavior and consistent APIs
+-   Comprehensive documentation and examples
+-   Flexible event override system for custom behavior
+-   Sensible defaults
 
-A ton of effort has been invested in making sure that the components are accessible by default. They've been designed following the best practices for accessibility with the goal of making them usable by as many people as possible. Keyboard navigation, screen reader support, and focus management are all built-in.
+### Built for Production
 
-## Consistent
+-   Strives to follow [W3C ARIA Authoring Practices](https://www.w3.org/TR/wai-aria-practices-1.2/)
+-   Built-in keyboard navigation
+-   Screen reader optimization
+-   Focus management
 
-The API of each component has been designed with consistency in mind. This means that once you learn how to use one component, you should be able to use similar components with ease. While the docs are always there to help, the goal is to make the components as intuitive as possible.
+### Composable Architecture
 
-## Credits
+Components are designed to work independently or together, featuring:
 
--   [Bitworks](https://bitworks.cz) - The design team behind the Bits UI documentation and example components.
--   [Melt UI](https://melt-ui.com) - The underlying builder API that powers Bits.
--   [Radix UI](https://radix-ui.com) - The incredible headless component APIs that we've taken heavy inspiration from.
--   [React Spectrum](https://react-spectrum.adobe.com) - An incredible collection of headless components we've taken inspiration from.
+-   [Render Delegation](/docs/child-snippet) for maximum flexibility
+-   Chainable events and callbacks
+-   Override-friendly defaults
+-   Minimal dependencies
+
+## Community
+
+Bits UI is an open-source project built and maintained by [Hunter Johnston](https://x.com/huntabyte) with design support from [Pavel Stianko](https://x.com/pavel_stianko) and his team at [Bitworks Studio](https://bitworks.cz). We always welcome contributions and feedback from the community.
+
+Found an accessibility issue or have a suggestion? [Open an issue](https://github.com/huntabyte/bits-ui/issues/new).
+
+## Acknowledgments
+
+Built on the shoulders of giants:
+
+-   [Melt UI](https://melt-ui.com) - Inspired our internal architecture and powered the first version of Bits UI
+-   [Radix UI](https://radix-ui.com) - Reference for component API design
+-   [React Spectrum](https://react-spectrum.adobe.com) - Inspiration for date/time components

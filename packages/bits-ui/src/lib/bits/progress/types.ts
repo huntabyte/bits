@@ -1,26 +1,19 @@
-import type { CreateProgressProps as MeltProgressProps } from "@melt-ui/svelte";
-import type {
-	DOMElement,
-	Expand,
-	HTMLDivAttributes,
-	OmitValue,
-	OnChangeFn,
-} from "$lib/internal/index.js";
+import type { WithChild, Without } from "$lib/internal/types.js";
+import type { BitsPrimitiveDivAttributes } from "$lib/shared/attributes.js";
 
-export type ProgressPropsWithoutHTML = Expand<
-	OmitValue<MeltProgressProps> & {
-		/**
-		 * The value of the progress bar.
-		 * You can bind this to a number value to programmatically control the value.
-		 */
-		value?: MeltProgressProps["defaultValue"] | undefined;
+export type ProgressRootPropsWithoutHTML = WithChild<{
+	/**
+	 * The current value of the progress bar.
+	 * If `null`, the progress bar will be in an indeterminate state.
+	 */
+	value?: number | null;
 
-		/**
-		 * A callback function called when the value changes.
-		 */
-		onValueChange?: OnChangeFn<number | null> | undefined;
-	} & DOMElement
->;
-//
+	/**
+	 * The maximum value of the progress bar. Used to calculate the percentage
+	 * of the progress bar along with the `value` prop.
+	 */
+	max?: number;
+}>;
 
-export type ProgressProps = ProgressPropsWithoutHTML & HTMLDivAttributes;
+export type ProgressRootProps = ProgressRootPropsWithoutHTML &
+	Without<BitsPrimitiveDivAttributes, ProgressRootPropsWithoutHTML>;

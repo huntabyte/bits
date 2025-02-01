@@ -1,8 +1,8 @@
 <script lang="ts">
+	import type { HTMLAttributes } from "svelte/elements";
 	import { cn } from "$lib/utils/index.js";
 
-	let className: string | undefined | null = undefined;
-	export { className as class };
+	let { class: className, ...restProps }: HTMLAttributes<HTMLElement> = $props();
 </script>
 
-<hr class={cn("my-4 md:my-8", className)} {...$$restProps} />
+<hr class={cn("my-4 md:my-8", className)} {...restProps} />

@@ -1,4 +1,6 @@
-// @ts-check
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+// @ts-nocheck
+
 import { readFileSync } from "node:fs";
 import path, { resolve } from "node:path";
 import process from "node:process";
@@ -154,13 +156,10 @@ export function rehypeComponentExample() {
 		const nameRegex = /name="([^"]+)"/;
 		const compRegex = /comp="([^"]+)"/;
 		visit(tree, (node, index, parent) => {
-			// @ts-expect-error - we're using an untyped node here
 			if (node?.type === "raw" && node?.value?.startsWith("<ComponentPreview")) {
 				const currNode = node;
-				// @ts-expect-error - we're using an untyped 'raw' node
 				const nameMatch = currNode.value.match(nameRegex);
 				const name = nameMatch ? nameMatch[1] : null;
-				// @ts-expect-error - we're using an untyped 'raw' node
 				const compMatch = currNode.value.match(compRegex);
 				const comp = compMatch ? compMatch[1] : null;
 

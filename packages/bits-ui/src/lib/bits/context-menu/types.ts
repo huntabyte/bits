@@ -1,64 +1,60 @@
-import type {
-	DOMElement,
-	HTMLDivAttributes,
-	Transition,
-	TransitionProps,
-} from "$lib/internal/index.js";
-import type { FloatingProps } from "$lib/bits/floating/_types.js";
+import type { MenuContentProps, MenuContentPropsWithoutHTML } from "../menu/types.js";
+import type { WithChild, Without } from "$lib/internal/types.js";
+import type { BitsPrimitiveDivAttributes } from "$lib/shared/attributes.js";
+
+export type ContextMenuContentPropsWithoutHTML = Omit<
+	MenuContentPropsWithoutHTML,
+	"align" | "side" | "sideOffset"
+>;
+
+export type ContextMenuContentProps = Omit<
+	MenuContentProps,
+	"side" | "onOpenAutoFocus" | "sideOffset" | "align"
+>;
+
+export type ContextMenuTriggerPropsWithoutHTML = WithChild<{
+	/**
+	 * Whether the context menu trigger is disabled. If disabled, the trigger will not
+	 * open the menu when right-clicked.
+	 */
+	disabled?: boolean;
+}>;
+
+export type ContextMenuTriggerProps = ContextMenuTriggerPropsWithoutHTML &
+	Without<BitsPrimitiveDivAttributes, ContextMenuTriggerPropsWithoutHTML>;
 
 export type {
-	ArrowProps as ContextMenuArrowProps,
-	CheckboxIndicatorProps as ContextMenuCheckboxIndicatorProps,
-	CheckboxItemEvents as ContextMenuCheckboxItemEvents,
-	CheckboxItemProps as ContextMenuCheckboxItemProps,
-	ContentEvents as ContextMenuContentEvents,
-	GroupProps as ContextMenuGroupProps,
-	ItemEvents as ContextMenuItemEvents,
-	ItemProps as ContextMenuItemProps,
-	LabelProps as ContextMenuLabelProps,
-	Props as ContextMenuProps,
-	RadioGroupProps as ContextMenuRadioGroupProps,
-	RadioIndicatorProps as ContextMenuRadioIndicatorProps,
-	RadioItemEvents as ContextMenuRadioItemEvents,
-	RadioItemProps as ContextMenuRadioItemProps,
-	SeparatorProps as ContextMenuSeparatorProps,
-	SubContentEvents as ContextMenuSubContentEvents,
-	SubContentProps as ContextMenuSubContentProps,
-	SubProps as ContextMenuSubProps,
-	SubTriggerEvents as ContextMenuSubTriggerEvents,
-	SubTriggerProps as ContextMenuSubTriggerProps,
-	ContextTriggerEvents as ContextMenuTriggerEvents,
-	ContextTriggerProps as ContextMenuTriggerProps,
-} from "$lib/bits/menu/index.js";
-
-type ContextFloatingProps = Omit<FloatingProps, "sameWidth" | "side" | "sideOffset" | "align">;
-
-export type ContextMenuContentPropsWithoutHTML<
-	T extends Transition = Transition,
-	In extends Transition = Transition,
-	Out extends Transition = Transition,
-> = Expand<ContextFloatingProps & TransitionProps<T, In, Out> & DOMElement>;
-
-export type ContextMenuContentProps<
-	T extends Transition = Transition,
-	In extends Transition = Transition,
-	Out extends Transition = Transition,
-> = ContextMenuContentPropsWithoutHTML<T, In, Out> & HTMLDivAttributes;
+	MenuArrowProps as ContextMenuArrowProps,
+	MenuContentStaticProps as ContextMenuContentStaticProps,
+	MenuCheckboxItemProps as ContextMenuCheckboxItemProps,
+	MenuGroupProps as ContextMenuGroupProps,
+	MenuItemProps as ContextMenuItemProps,
+	MenuGroupHeadingProps as ContextMenuGroupHeadingProps,
+	MenuRootProps as ContextMenuRootProps,
+	MenuRadioGroupProps as ContextMenuRadioGroupProps,
+	MenuRadioItemProps as ContextMenuRadioItemProps,
+	MenuSeparatorProps as ContextMenuSeparatorProps,
+	MenuSubContentProps as ContextMenuSubContentProps,
+	MenuSubContentStaticProps as ContextMenuSubContentStaticProps,
+	MenuSubProps as ContextMenuSubProps,
+	MenuSubTriggerProps as ContextMenuSubTriggerProps,
+	MenuPortalProps as ContextMenuPortalProps,
+} from "$lib/bits/menu/types.js";
 
 export type {
-	MenuTriggerPropsWithoutHTML as ContextMenuTriggerPropsWithoutHTML,
+	MenuRootPropsWithoutHTML as ContextMenuRootPropsWithoutHTML,
+	MenuContentStaticPropsWithoutHTML as ContextMenuContentStaticPropsWithoutHTML,
 	MenuArrowPropsWithoutHTML as ContextMenuArrowPropsWithoutHTML,
-	MenuCheckboxIndicatorPropsWithoutHTML as ContextMenuCheckboxIndicatorPropsWithoutHTML,
 	MenuCheckboxItemPropsWithoutHTML as ContextMenuCheckboxItemPropsWithoutHTML,
 	MenuGroupPropsWithoutHTML as ContextMenuGroupPropsWithoutHTML,
 	MenuItemPropsWithoutHTML as ContextMenuItemPropsWithoutHTML,
-	MenuLabelPropsWithoutHTML as ContextMenuLabelPropsWithoutHTML,
-	MenuPropsWithoutHTML as ContextMenuPropsWithoutHTML,
+	MenuGroupHeadingPropsWithoutHTML as ContextMenuGroupHeadingPropsWithoutHTML,
 	MenuRadioGroupPropsWithoutHTML as ContextMenuRadioGroupPropsWithoutHTML,
-	MenuRadioIndicatorPropsWithoutHTML as ContextMenuRadioIndicatorPropsWithoutHTML,
 	MenuRadioItemPropsWithoutHTML as ContextMenuRadioItemPropsWithoutHTML,
 	MenuSeparatorPropsWithoutHTML as ContextMenuSeparatorPropsWithoutHTML,
-	MenuSubContentPropsWithoutHTML as ContextMenuSubContentPropsWithoutHTML,
 	MenuSubPropsWithoutHTML as ContextMenuSubPropsWithoutHTML,
 	MenuSubTriggerPropsWithoutHTML as ContextMenuSubTriggerPropsWithoutHTML,
+	MenuSubContentPropsWithoutHTML as ContextMenuSubContentPropsWithoutHTML,
+	MenuSubContentStaticPropsWithoutHTML as ContextMenuSubContentStaticPropsWithoutHTML,
+	MenuPortalPropsWithoutHTML as ContextMenuPortalPropsWithoutHTML,
 } from "$lib/bits/menu/types.js";

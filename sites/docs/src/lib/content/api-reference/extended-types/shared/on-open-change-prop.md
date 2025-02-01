@@ -1,0 +1,3 @@
+```ts
+(open: boolean) => void
+```
