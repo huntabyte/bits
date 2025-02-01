@@ -75,11 +75,15 @@ export class CustomEventDispatcher<T = unknown> {
 		return event;
 	}
 
-	listen(element: EventTarget, callback: (event: CustomEvent<T>) => void) {
+	listen(
+		element: EventTarget,
+		callback: (event: CustomEvent<T>) => void,
+		options?: AddEventListenerOptions
+	) {
 		const handler = (event: Event) => {
 			callback(event as CustomEvent<T>);
 		};
 
-		return on(element, this.eventName, handler);
+		return on(element, this.eventName, handler, options);
 	}
 }

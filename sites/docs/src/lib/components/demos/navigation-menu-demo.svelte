@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { NavigationMenu } from "bits-ui";
+	import { NavMenu } from "bits-ui";
 	import CaretDown from "phosphor-svelte/lib/CaretDown";
 	import { cn } from "$lib/utils/styles.js";
 
@@ -50,7 +50,7 @@
 
 {#snippet ListItem({ className, title, content, href }: ListItemProps)}
 	<li>
-		<NavigationMenu.Link
+		<NavMenu.Link
 			class={cn(
 				"block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-muted hover:text-accent-foreground focus:bg-muted focus:text-accent-foreground",
 				className
@@ -61,14 +61,14 @@
 			<p class="line-clamp-2 text-sm leading-snug text-muted-foreground">
 				{content}
 			</p>
-		</NavigationMenu.Link>
+		</NavMenu.Link>
 	</li>
 {/snippet}
 
-<NavigationMenu.Root class="relative z-10 flex max-w-max flex-1 items-center justify-center">
-	<NavigationMenu.List class="group flex flex-1 list-none items-center justify-center space-x-1">
-		<NavigationMenu.Item>
-			<NavigationMenu.Trigger
+<NavMenu.Root class="relative z-10 flex max-w-max flex-1 items-center justify-center">
+	<NavMenu.List class="group flex flex-1 list-none items-center justify-center space-x-1">
+		<NavMenu.Item>
+			<NavMenu.Trigger
 				class="group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-muted hover:text-accent-foreground focus:bg-muted focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-muted/50 data-[state=open]:bg-muted/50"
 			>
 				Getting started
@@ -76,13 +76,15 @@
 					class="group-data[state=open]:rotate-180 relative top-[1px] ml-1 size-3 transition duration-200"
 					aria-hidden="true"
 				/>
-			</NavigationMenu.Trigger>
-			<NavigationMenu.Content
-				class="left-0 top-0 z-50 w-full data-[motion^=from-]:animate-in data-[motion^=to-]:animate-out data-[motion^=from-]:fade-in data-[motion^=to-]:fade-out data-[motion=from-end]:slide-in-from-right-52 data-[motion=from-start]:slide-in-from-left-52 data-[motion=to-end]:slide-out-to-right-52 data-[motion=to-start]:slide-out-to-left-52 md:absolute md:w-auto"
+			</NavMenu.Trigger>
+			<NavMenu.Content
+				class="absolute left-0 top-0 z-50 w-full data-[motion^=from-]:animate-in data-[motion^=to-]:animate-out data-[motion^=from-]:fade-in data-[motion^=to-]:fade-out data-[motion=from-end]:slide-in-from-right-52 data-[motion=from-start]:slide-in-from-left-52 data-[motion=to-end]:slide-out-to-right-52 data-[motion=to-start]:slide-out-to-left-52 sm:w-auto"
 			>
-				<ul class="grid gap-3 p-6 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]">
+				<ul
+					class="m-0 grid list-none gap-x-2.5 p-[22px] sm:w-[600px] sm:grid-flow-col sm:grid-rows-3"
+				>
 					<li class="row-span-3">
-						<NavigationMenu.Link
+						<NavMenu.Link
 							href="/"
 							class="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-muted/50 to-muted p-6 no-underline outline-none focus:shadow-md"
 						>
@@ -91,7 +93,7 @@
 							<p class="text-sm leading-tight text-muted-foreground">
 								The headless components for Svelte.
 							</p>
-						</NavigationMenu.Link>
+						</NavMenu.Link>
 					</li>
 
 					{@render ListItem({
@@ -110,10 +112,10 @@
 						content: "How to style Bits UI components",
 					})}
 				</ul>
-			</NavigationMenu.Content>
-		</NavigationMenu.Item>
-		<NavigationMenu.Item>
-			<NavigationMenu.Trigger
+			</NavMenu.Content>
+		</NavMenu.Item>
+		<NavMenu.Item>
+			<NavMenu.Trigger
 				class="group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-muted hover:text-accent-foreground focus:bg-muted focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-muted/50 data-[state=open]:bg-muted/50"
 			>
 				Components
@@ -121,8 +123,8 @@
 					class="group-data[state=open]:rotate-180 relative top-[1px] ml-1 size-3 transition duration-200"
 					aria-hidden="true"
 				/>
-			</NavigationMenu.Trigger>
-			<NavigationMenu.Content
+			</NavMenu.Trigger>
+			<NavMenu.Content
 				class="left-0 top-0 z-50 w-full data-[motion^=from-]:animate-in data-[motion^=to-]:animate-out data-[motion^=from-]:fade-in data-[motion^=to-]:fade-out data-[motion=from-end]:slide-in-from-right-52 data-[motion=from-start]:slide-in-from-left-52 data-[motion=to-end]:slide-out-to-right-52 data-[motion=to-start]:slide-out-to-left-52 md:absolute md:w-auto"
 			>
 				<ul class="grid w-[400px] gap-3 p-6 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
@@ -134,27 +136,27 @@
 						})}
 					{/each}
 				</ul>
-			</NavigationMenu.Content>
-		</NavigationMenu.Item>
-		<NavigationMenu.Item>
-			<NavigationMenu.Link
+			</NavMenu.Content>
+		</NavMenu.Item>
+		<NavMenu.Item>
+			<NavMenu.Link
 				class="group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-muted hover:text-accent-foreground focus:bg-muted focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-muted/50 data-[state=open]:bg-muted/50"
 				href="/docs"
 			>
 				Documentation
-			</NavigationMenu.Link>
-		</NavigationMenu.Item>
-		<NavigationMenu.Indicator
+			</NavMenu.Link>
+		</NavMenu.Item>
+		<NavMenu.Indicator
 			class="top-full z-[1] flex h-1.5 items-end justify-center overflow-hidden data-[state=visible]:animate-in data-[state=hidden]:animate-out data-[state=hidden]:fade-out data-[state=visible]:fade-in"
 		>
 			<div
 				class="relative top-[60%] size-2 rotate-45 rounded-tl-sm bg-border shadow-md"
 			></div>
-		</NavigationMenu.Indicator>
-	</NavigationMenu.List>
+		</NavMenu.Indicator>
+	</NavMenu.List>
 	<div class="absolute left-0 top-full flex justify-center">
-		<NavigationMenu.Viewport
+		<NavMenu.Viewport
 			class="origin-top-center text-popover-foreground relative mt-1.5 h-[var(--bits-navigation-menu-viewport-height)] w-full overflow-hidden rounded-md border bg-background shadow-lg data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-90 md:w-[var(--bits-navigation-menu-viewport-width)]"
 		/>
 	</div>
-</NavigationMenu.Root>
+</NavMenu.Root>
